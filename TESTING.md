@@ -2,6 +2,10 @@
 
 What has been tested so far, and what hasn't.
 
+## Release 1.0.2
+
+Demo page only; the plugin's code is the same as in 1.0.1. The demo's stand-ins for Obsidian's DOM helpers moved to plain JavaScript (`demo/obsidian-dom.js`), which clears the last six review warnings. The demo renders the same markup as before (gallery, note, wheel, toast, and dialogs), and the review's lint rules report nothing for it.
+
 ## Release 1.0.1
 
 Clears the code warnings from the Community directory review. Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness:
