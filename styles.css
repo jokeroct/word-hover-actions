@@ -1,0 +1,701 @@
+/* Word Hover Actions — frosted glass theme
+ *
+ * Every plugin surface carries `wha-theme wha-preset-<id>`. Tokens below define the glass
+ * (per light/dark theme) and the accent gradient (per preset); components only use tokens.
+ */
+
+/* ---- Tokens: glass (dark) and default preset (theme accent) ------------------------------ */
+
+.wha-theme {
+	--wha-accent-1: var(--interactive-accent);
+	--wha-accent-2: color-mix(in oklab, var(--interactive-accent) 70%, black);
+	--wha-on-accent: var(--text-on-accent);
+	--wha-accent-text: var(--text-accent);
+	--wha-glow: color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+
+	--wha-glass: rgba(24, 24, 30, 0.58);
+	--wha-glass-strong: rgba(26, 26, 32, 0.84);
+	--wha-glass-border: rgba(255, 255, 255, 0.09);
+	--wha-glass-edge: rgba(255, 255, 255, 0.14);
+	--wha-seg-top: rgba(255, 255, 255, 0.12);
+	--wha-seg-bottom: rgba(255, 255, 255, 0.035);
+	--wha-hub: rgba(14, 14, 18, 0.74);
+	--wha-blur: blur(20px) saturate(170%);
+	--wha-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7), 0 12px 28px -14px rgba(0, 0, 0, 0.5);
+	--wha-text: var(--text-normal);
+	--wha-text-muted: var(--text-muted);
+	--wha-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* In light themes the rim is a cool grey glass and the segments brighter white, so the gaps
+ * between segments stay visible on a white page. */
+.theme-light .wha-theme {
+	--wha-glass: rgba(226, 231, 240, 0.66);
+	--wha-glass-strong: rgba(255, 255, 255, 0.86);
+	--wha-glass-border: rgba(15, 23, 42, 0.1);
+	--wha-glass-edge: rgba(255, 255, 255, 0.95);
+	--wha-seg-top: rgba(255, 255, 255, 0.98);
+	--wha-seg-bottom: rgba(255, 255, 255, 0.7);
+	--wha-hub: rgba(255, 255, 255, 0.96);
+	--wha-shadow: 0 30px 60px -24px rgba(15, 23, 42, 0.32), 0 10px 24px -14px rgba(15, 23, 42, 0.2);
+}
+
+/* ---- Presets ---------------------------------------------------------------------------- */
+
+.wha-theme.wha-preset-aurora {
+	--wha-accent-1: #0284c7;
+	--wha-accent-2: #7c3aed;
+	--wha-on-accent: #ffffff;
+	--wha-accent-text: #8b5cf6;
+	--wha-glow: rgba(124, 58, 237, 0.5);
+}
+
+.wha-theme.wha-preset-sunset {
+	--wha-accent-1: #ea580c;
+	--wha-accent-2: #be123c;
+	--wha-on-accent: #ffffff;
+	--wha-accent-text: #f97316;
+	--wha-glow: rgba(234, 88, 12, 0.45);
+}
+
+.wha-theme.wha-preset-champagne {
+	--wha-accent-1: #f2d59a;
+	--wha-accent-2: #c9a35a;
+	--wha-on-accent: #241a09;
+	--wha-accent-text: #d4b06a;
+	--wha-glow: rgba(214, 178, 106, 0.5);
+}
+
+.theme-light .wha-theme.wha-preset-champagne {
+	--wha-accent-text: #9a7a3c;
+}
+
+.wha-theme.wha-preset-graphite {
+	--wha-accent-1: #f3f4f6;
+	--wha-accent-2: #9ca3af;
+	--wha-on-accent: #111827;
+	--wha-accent-text: #d1d5db;
+	--wha-glow: rgba(209, 213, 219, 0.35);
+}
+
+/* Silver would wash out on white glass, so Graphite turns dark in light themes. */
+.theme-light .wha-theme.wha-preset-graphite {
+	--wha-accent-1: #6b7280;
+	--wha-accent-2: #1f2937;
+	--wha-on-accent: #ffffff;
+	--wha-accent-text: #374151;
+	--wha-glow: rgba(31, 41, 55, 0.3);
+}
+
+/* ---- Wheel ------------------------------------------------------------------------------ */
+
+.word-hover-actions-menu.wha-wheel {
+	position: fixed;
+	z-index: var(--layer-menu);
+	border-radius: 50%;
+	background: radial-gradient(circle at 50% 22%, var(--wha-seg-top), transparent 62%), var(--wha-glass);
+	-webkit-backdrop-filter: var(--wha-blur);
+	backdrop-filter: var(--wha-blur);
+	border: 1px solid var(--wha-glass-border);
+	box-shadow:
+		var(--wha-shadow),
+		inset 0 1px 0 var(--wha-glass-edge);
+	color: var(--wha-text);
+	font-size: var(--font-ui-smaller);
+	user-select: none;
+	animation: wha-wheel-open 150ms cubic-bezier(0.2, 0.9, 0.25, 1.15);
+}
+
+/* Sizes match GEOMETRY in src/menu.ts. */
+.word-hover-actions-menu.wha-wheel-4 {
+	width: 184px;
+	height: 184px;
+}
+
+.word-hover-actions-menu.wha-wheel-6 {
+	width: 200px;
+	height: 200px;
+}
+
+.word-hover-actions-menu.wha-wheel-8 {
+	width: 224px;
+	height: 224px;
+}
+
+.wha-wheel-4 .wha-wheel-center {
+	width: 54px;
+}
+
+.wha-wheel-6 .wha-wheel-center {
+	width: 66px;
+}
+
+.wha-wheel-8 .wha-wheel-center {
+	width: 82px;
+}
+
+/* The wheel grows out of the side facing the word. */
+.word-hover-actions-menu.wha-grow-right {
+	transform-origin: left center;
+}
+
+.word-hover-actions-menu.wha-grow-left {
+	transform-origin: right center;
+}
+
+@keyframes wha-wheel-open {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+}
+
+.wha-wheel .wha-wheel-svg {
+	position: absolute;
+	inset: -1px;
+	overflow: visible;
+	transform-origin: 50% 50%;
+	animation: wha-wheel-spin 220ms var(--wha-ease);
+}
+
+@keyframes wha-wheel-spin {
+	from {
+		transform: rotate(-14deg);
+	}
+}
+
+.wha-wheel .wha-stop-glass-top {
+	stop-color: var(--wha-seg-top);
+}
+
+.wha-wheel .wha-stop-glass-bottom {
+	stop-color: var(--wha-seg-bottom);
+}
+
+.wha-wheel .wha-stop-accent-1 {
+	stop-color: var(--wha-accent-1);
+}
+
+.wha-wheel .wha-stop-accent-2 {
+	stop-color: var(--wha-accent-2);
+}
+
+/* A segment is a group: glass base (takes the pointer) + accent overlay that fades in. */
+.wha-wheel .wha-seg {
+	transform-box: view-box;
+	transform-origin: 50% 50%;
+	transition: transform 140ms var(--wha-ease);
+	animation: wha-seg-in 140ms ease-out backwards;
+	animation-delay: calc(var(--i) * 12ms);
+}
+
+@keyframes wha-seg-in {
+	from {
+		opacity: 0;
+		transform: scale(0.82);
+	}
+}
+
+.wha-wheel .wha-wheel-seg,
+.wha-wheel .wha-seg-fill {
+	stroke-width: 8px;
+	stroke-linejoin: round;
+}
+
+.wha-wheel .wha-wheel-seg {
+	cursor: var(--cursor);
+	transition: opacity 140ms ease;
+}
+
+.wha-wheel .wha-seg-fill {
+	opacity: 0;
+	pointer-events: none;
+	transition:
+		opacity 140ms ease,
+		filter 140ms ease;
+}
+
+.wha-wheel .wha-seg.is-active .wha-seg-fill {
+	opacity: 0.38;
+}
+
+.wha-wheel .wha-seg.is-hovered:not(.is-disabled) {
+	transform: scale(1.04);
+}
+
+.wha-wheel .wha-seg.is-hovered:not(.is-disabled) .wha-seg-fill {
+	opacity: 1;
+	filter: drop-shadow(0 4px 10px var(--wha-glow));
+}
+
+.wha-wheel .wha-seg.is-disabled .wha-wheel-seg {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.wha-wheel .wha-seg.is-empty .wha-wheel-seg {
+	opacity: 0.28;
+	cursor: default;
+}
+
+.wha-wheel .wha-wheel-hub {
+	fill: var(--wha-hub);
+	stroke: var(--wha-glass-border);
+	stroke-width: 1px;
+	cursor: var(--cursor);
+	transition: stroke 140ms ease;
+}
+
+.wha-wheel.has-hover .wha-wheel-hub {
+	stroke: color-mix(in srgb, var(--wha-accent-1) 75%, transparent);
+}
+
+/* Link tools: a dashed hub marks the different mode. */
+.wha-wheel.wha-wheel-links .wha-wheel-hub {
+	stroke-dasharray: 3 3;
+}
+
+.wha-wheel .wha-wheel-label {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+	pointer-events: none;
+	color: var(--wha-text);
+	transition:
+		color 140ms ease,
+		transform 140ms var(--wha-ease);
+	animation: wha-fade-in 160ms ease-out backwards;
+	animation-delay: calc(var(--i) * 12ms + 40ms);
+}
+
+@keyframes wha-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+.wha-wheel .wha-wheel-label.is-hovered:not(.is-disabled) {
+	color: var(--wha-on-accent);
+	transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* A small accent dot marks formatting that is already applied. */
+.wha-wheel .wha-wheel-label.is-active::after {
+	content: "";
+	width: 4px;
+	height: 4px;
+	margin-top: 1px;
+	border-radius: 50%;
+	background-color: var(--wha-accent-1);
+	box-shadow: 0 0 6px var(--wha-glow);
+}
+
+.wha-wheel .wha-wheel-label.is-active.is-hovered::after {
+	background-color: var(--wha-on-accent);
+}
+
+.wha-wheel .wha-wheel-label.is-disabled {
+	color: var(--text-faint);
+}
+
+.wha-wheel .wha-wheel-icon {
+	display: flex;
+}
+
+.wha-wheel .wha-wheel-icon svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+	stroke-width: 2.1px;
+}
+
+.wha-wheel.wha-wheel-8 .wha-wheel-label {
+	font-size: 10px;
+}
+
+.wha-wheel .wha-wheel-center {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	text-align: center;
+	font-size: 10.5px;
+	font-weight: var(--font-semibold);
+	line-height: 1.2;
+	color: var(--wha-text);
+	overflow-wrap: anywhere;
+	pointer-events: none;
+}
+
+.wha-wheel .wha-wheel-center.is-muted {
+	color: var(--wha-text-muted);
+	font-weight: var(--font-normal);
+}
+
+/* Inline preview in the settings tab. */
+.wha-wheel.is-preview {
+	position: relative;
+	animation: none;
+	margin: 0 auto;
+}
+
+/* ---- Target mark in the editor ---------------------------------------------------------- */
+
+.cm-editor .wha-hover-target {
+	background-color: color-mix(in srgb, var(--wha-accent-1) 16%, transparent);
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--wha-accent-1) 32%, transparent);
+	border-radius: 4px;
+}
+
+/* ---- Buttons ---------------------------------------------------------------------------- */
+
+.wha-theme .wha-btn-primary,
+.wha-glass-modal button.mod-cta {
+	background-color: var(--wha-accent-2);
+	background-image: linear-gradient(135deg, var(--wha-accent-1), var(--wha-accent-2));
+	color: var(--wha-on-accent);
+	border: none;
+	box-shadow:
+		0 6px 16px -8px var(--wha-glow),
+		inset 0 1px 0 rgba(255, 255, 255, 0.22);
+	transition:
+		filter 120ms ease,
+		box-shadow 120ms ease,
+		transform 120ms ease;
+}
+
+.wha-theme .wha-btn-primary:hover,
+.wha-glass-modal button.mod-cta:hover {
+	filter: brightness(1.07) saturate(1.05);
+	box-shadow:
+		0 10px 22px -8px var(--wha-glow),
+		inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.wha-theme .wha-btn-primary:active,
+.wha-glass-modal button.mod-cta:active {
+	transform: translateY(1px);
+}
+
+/* ---- Toast ------------------------------------------------------------------------------ */
+
+.wha-toast {
+	position: fixed;
+	right: 16px;
+	bottom: 40px;
+	z-index: var(--layer-notice);
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 10px 8px;
+	max-width: min(440px, calc(100vw - 32px));
+	padding: 12px 12px 12px 18px;
+	background-color: var(--wha-glass-strong);
+	-webkit-backdrop-filter: var(--wha-blur);
+	backdrop-filter: var(--wha-blur);
+	border: 1px solid var(--wha-glass-border);
+	border-radius: 14px;
+	box-shadow:
+		var(--wha-shadow),
+		inset 0 1px 0 var(--wha-glass-edge);
+	color: var(--wha-text);
+	font-size: var(--font-ui-small);
+	animation: wha-toast-in 200ms cubic-bezier(0.2, 0.9, 0.25, 1.1);
+}
+
+.wha-toast::before {
+	content: "";
+	position: absolute;
+	left: 7px;
+	top: 12px;
+	bottom: 12px;
+	width: 3px;
+	border-radius: 3px;
+	background-image: linear-gradient(var(--wha-accent-1), var(--wha-accent-2));
+}
+
+@keyframes wha-toast-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.98);
+	}
+}
+
+.wha-toast .wha-toast-message {
+	align-self: center;
+}
+
+.wha-toast .wha-toast-actions {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.wha-toast .wha-toast-actions button:disabled {
+	opacity: 1;
+	background: none;
+	box-shadow: none;
+	color: var(--text-success);
+	cursor: default;
+}
+
+/* ---- Dialogs and the note picker -------------------------------------------------------- */
+
+/* Dialogs need a positioned box for the hairline below; the picker (.prompt) is already
+ * positioned by Obsidian and must keep its place near the top of the window. */
+.modal.wha-glass-modal {
+	position: relative;
+}
+
+.wha-glass-modal.wha-glass-modal {
+	background-color: var(--wha-glass-strong);
+	-webkit-backdrop-filter: var(--wha-blur);
+	backdrop-filter: var(--wha-blur);
+	border: 1px solid var(--wha-glass-border);
+	border-radius: 16px;
+	box-shadow:
+		var(--wha-shadow),
+		inset 0 1px 0 var(--wha-glass-edge);
+	animation: wha-modal-in 180ms cubic-bezier(0.2, 0.9, 0.25, 1.05);
+}
+
+/* A hairline of the accent gradient along the top edge. */
+.wha-glass-modal.wha-glass-modal::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 24px;
+	right: 24px;
+	height: 1px;
+	background-image: linear-gradient(90deg, transparent, var(--wha-accent-1), var(--wha-accent-2), transparent);
+	opacity: 0.9;
+	pointer-events: none;
+}
+
+@keyframes wha-modal-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px) scale(0.985);
+	}
+}
+
+.wha-glass-modal input[type="text"]:focus,
+.wha-glass-modal .prompt-input:focus {
+	border-color: var(--wha-accent-1);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--wha-accent-1) 40%, transparent);
+}
+
+.wha-glass-modal .suggestion-item.is-selected {
+	background-image: linear-gradient(
+		90deg,
+		color-mix(in srgb, var(--wha-accent-2) 26%, transparent),
+		color-mix(in srgb, var(--wha-accent-1) 6%, transparent)
+	);
+	box-shadow: inset 2px 0 0 var(--wha-accent-1);
+}
+
+.wha-suggestion.wha-create .suggestion-flair {
+	color: var(--wha-accent-text);
+}
+
+.wha-suggestion.wha-create.is-disabled .suggestion-title {
+	color: var(--text-muted);
+}
+
+.wha-suggestion .wha-warning {
+	color: var(--text-warning);
+}
+
+.wha-extract .wha-extract-error {
+	min-height: 1.2em;
+	margin: -8px 0 4px;
+	color: var(--text-error);
+	font-size: var(--font-ui-small);
+}
+
+.wha-extract .wha-extract-preview {
+	max-height: 140px;
+	overflow: auto;
+	padding: 10px 14px;
+	background-color: color-mix(in srgb, var(--background-primary) 55%, transparent);
+	border: 1px solid var(--wha-glass-border);
+	border-radius: 10px;
+	box-shadow: inset 3px 0 0 var(--wha-accent-1);
+	color: var(--wha-text-muted);
+	font-size: var(--font-ui-small);
+	white-space: pre-wrap;
+}
+
+.wha-define .wha-define-status {
+	color: var(--wha-text-muted);
+	padding: 8px 0;
+}
+
+.wha-define .wha-define-section + .wha-define-section {
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid var(--wha-glass-border);
+}
+
+.wha-define .wha-define-heading {
+	color: var(--wha-accent-text);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.wha-define .wha-define-heading a {
+	color: inherit;
+}
+
+.wha-define .wha-define-description,
+.wha-define .wha-define-note {
+	margin-top: 2px;
+	color: var(--wha-text-muted);
+	font-style: italic;
+}
+
+.wha-define .wha-define-pos {
+	margin-top: 8px;
+	font-weight: var(--font-semibold);
+}
+
+.wha-define ol {
+	margin: 4px 0 0;
+	padding-inline-start: 1.4em;
+}
+
+.wha-peek .wha-peek-meta {
+	color: var(--wha-text-muted);
+	font-size: var(--font-ui-small);
+	margin-bottom: 10px;
+}
+
+.wha-peek .wha-peek-body {
+	max-height: 50vh;
+	overflow: auto;
+	padding: 4px 14px;
+	background-color: color-mix(in srgb, var(--background-primary) 55%, transparent);
+	border: 1px solid var(--wha-glass-border);
+	border-radius: 12px;
+}
+
+/* ---- Settings ---------------------------------------------------------------------------- */
+
+.wha-preset-picker {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.wha-preset-chip {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+	min-width: 64px;
+	padding: 8px 6px 6px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	cursor: var(--cursor);
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease;
+}
+
+.wha-preset-chip:hover,
+.wha-preset-chip:focus-visible {
+	background-color: var(--background-modifier-hover);
+}
+
+.wha-preset-chip.is-selected {
+	border-color: var(--background-modifier-border-focus);
+	background-color: var(--background-modifier-hover);
+}
+
+.wha-preset-swatch {
+	background-image: linear-gradient(135deg, var(--wha-accent-1), var(--wha-accent-2));
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.35),
+		0 4px 10px -4px rgba(0, 0, 0, 0.45);
+}
+
+.wha-preset-chip.is-selected .wha-preset-swatch {
+	box-shadow:
+		0 0 0 2px var(--background-primary),
+		0 0 0 4px var(--text-normal),
+		inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.wha-preset-name {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	white-space: nowrap;
+}
+
+.wha-preset-chip.is-selected .wha-preset-name {
+	color: var(--text-normal);
+}
+
+/* Faint "lines of text" behind the preview so the glass blur is visible. */
+.wha-preview-stage {
+	display: flex;
+	justify-content: center;
+	padding: 20px 0;
+	margin-bottom: 8px;
+	border-radius: 12px;
+	background-color: var(--background-secondary);
+	background-image: repeating-linear-gradient(
+		180deg,
+		transparent 0 13px,
+		color-mix(in srgb, var(--text-normal) 14%, transparent) 13px 16px,
+		transparent 16px 26px
+	);
+	background-size: 70% 100%;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.wha-wrapper-setting .setting-item-info {
+	display: none;
+}
+
+.wha-wrapper-setting .setting-item-control input[type="text"] {
+	width: 7em;
+}
+
+/* ---- Motion ------------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+	.word-hover-actions-menu.wha-wheel,
+	.wha-wheel .wha-wheel-svg,
+	.wha-wheel .wha-seg,
+	.wha-wheel .wha-wheel-label,
+	.wha-toast,
+	.wha-glass-modal.wha-glass-modal {
+		animation: none;
+	}
+
+	.wha-wheel .wha-seg,
+	.wha-wheel .wha-wheel-label {
+		transition: none;
+	}
+
+	.wha-wheel .wha-seg.is-hovered:not(.is-disabled) {
+		transform: none;
+	}
+}

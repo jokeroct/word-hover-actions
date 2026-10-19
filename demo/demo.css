@@ -1,0 +1,499 @@
+/* Demo page. The wheel, toast, and dialogs use the plugin's own styles.css; this file supplies
+ * the Obsidian theme variables that stylesheet expects, plus the page around it. */
+
+/* ---- Obsidian variables (approximating the default theme) --------------------------------- */
+
+body {
+	--interactive-accent: #8a6cef;
+	--text-on-accent: #ffffff;
+	--font-ui-small: 13px;
+	--font-ui-smaller: 12px;
+	--font-normal: 400;
+	--font-semibold: 600;
+	--icon-s: 16px;
+	--radius-s: 4px;
+	--radius-m: 8px;
+	--layer-modal: 50;
+	--layer-notice: 60;
+	--layer-menu: 65;
+	--cursor: pointer;
+	--text-success: #4caf7a;
+	--text-warning: #e0a03a;
+	--text-error: #e5534b;
+}
+
+body.theme-dark {
+	color-scheme: dark;
+	--background-primary: #1e1e1e;
+	--background-secondary: #262626;
+	--background-modifier-border: #363636;
+	--background-modifier-border-focus: #6b6b6b;
+	--background-modifier-hover: rgba(255, 255, 255, 0.075);
+	--text-normal: #dadada;
+	--text-muted: #b3b3b3;
+	--text-faint: #6b6b6b;
+	--text-accent: #a68cf5;
+	--page-glow: rgba(138, 108, 239, 0.18);
+}
+
+body.theme-light {
+	color-scheme: light;
+	--background-primary: #ffffff;
+	--background-secondary: #f4f4f6;
+	--background-modifier-border: #e0e0e4;
+	--background-modifier-border-focus: #9a9aa3;
+	--background-modifier-hover: rgba(0, 0, 0, 0.06);
+	--text-normal: #222222;
+	--text-muted: #5c5c5c;
+	--text-faint: #a5a5ab;
+	--text-accent: #7354e6;
+	--page-glow: rgba(138, 108, 239, 0.12);
+}
+
+/* ---- Page ---------------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	background:
+		radial-gradient(1000px 500px at 50% -10%, var(--page-glow), transparent 70%),
+		var(--background-secondary);
+	color: var(--text-normal);
+	font-family:
+		Inter,
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		sans-serif;
+	font-size: 16px;
+	line-height: 1.55;
+}
+
+a {
+	color: var(--text-accent);
+}
+
+kbd {
+	display: inline-block;
+	padding: 0 6px;
+	border: 1px solid var(--background-modifier-border);
+	border-bottom-width: 2px;
+	border-radius: 5px;
+	background: var(--background-primary);
+	font: inherit;
+	font-size: 0.85em;
+	line-height: 1.5;
+}
+
+code {
+	padding: 1px 5px;
+	border-radius: 4px;
+	background: var(--background-modifier-hover);
+	font-size: 0.9em;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+}
+
+.demo-header,
+main,
+.demo-footer {
+	width: min(880px, 100% - 32px);
+	margin: 0 auto;
+}
+
+.demo-header {
+	padding: 56px 0 24px;
+	text-align: center;
+}
+
+.demo-eyebrow {
+	margin: 0;
+	color: var(--text-accent);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.demo-header h1 {
+	margin: 6px 0 10px;
+	font-size: clamp(32px, 6vw, 48px);
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+}
+
+.demo-lede {
+	max-width: 620px;
+	margin: 0 auto;
+	color: var(--text-muted);
+	font-size: 18px;
+}
+
+.demo-links {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+	margin-top: 22px;
+}
+
+.demo-button {
+	padding: 9px 18px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 999px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.demo-button-primary {
+	border-color: transparent;
+	background-image: linear-gradient(135deg, #0284c7, #7c3aed);
+	color: #ffffff;
+}
+
+/* ---- Interactive note ------------------------------------------------------------------------ */
+
+.demo-hint {
+	margin: 0 auto 12px;
+	color: var(--text-muted);
+	font-size: 14px;
+	text-align: center;
+}
+
+.demo-pane {
+	overflow: hidden;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 14px;
+	background: var(--background-primary);
+	box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.45);
+}
+
+.demo-pane-tab {
+	padding: 8px 16px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	font-size: 13px;
+}
+
+.demo-note {
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 28px 24px 36px;
+	font-size: 16px;
+	line-height: 1.7;
+}
+
+.demo-note-title {
+	margin: 0 0 14px;
+	font-size: 26px;
+	line-height: 1.25;
+}
+
+.demo-note p {
+	margin: 0 0 14px;
+}
+
+.demo-note .w {
+	border-radius: 3px;
+	cursor: default;
+}
+
+.demo-note .w:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.demo-note .is-link {
+	color: var(--text-accent);
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, var(--text-accent) 50%, transparent);
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+
+.demo-note .is-bold {
+	font-weight: 700;
+}
+
+.demo-note .is-italic {
+	font-style: italic;
+}
+
+.demo-note .is-highlight {
+	background-color: rgba(255, 208, 0, 0.35);
+}
+
+.demo-note .is-strike {
+	text-decoration: line-through;
+}
+
+.demo-note .is-comment {
+	color: var(--text-faint);
+}
+
+.demo-note .is-math {
+	font-family: "Cambria Math", "STIX Two Math", serif;
+	font-style: italic;
+}
+
+/* ---- Controls --------------------------------------------------------------------------------- */
+
+.demo-controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 18px 32px;
+	margin-top: 18px;
+}
+
+.demo-control {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+}
+
+.demo-control-label {
+	color: var(--text-muted);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.demo-presets.wha-preset-picker {
+	justify-content: center;
+}
+
+.demo-presets .wha-preset-chip {
+	border: 1px solid transparent;
+	background: none;
+}
+
+.demo-segmented {
+	display: flex;
+	padding: 3px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 999px;
+	background: var(--background-primary);
+}
+
+.demo-segmented button {
+	min-width: 52px;
+	padding: 5px 12px;
+	border: none;
+	border-radius: 999px;
+	background: none;
+	cursor: pointer;
+}
+
+.demo-segmented button[aria-pressed="true"] {
+	background: var(--background-modifier-hover);
+	font-weight: 600;
+}
+
+/* ---- Sections ------------------------------------------------------------------------------- */
+
+.demo-section {
+	margin-top: 56px;
+	text-align: center;
+}
+
+.demo-section h2 {
+	margin: 0 0 6px;
+	font-size: 24px;
+}
+
+.demo-section > p {
+	margin: 0 0 18px;
+	color: var(--text-muted);
+}
+
+.demo-gallery {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 18px;
+}
+
+.demo-gallery figure {
+	margin: 0;
+	padding: 18px 14px 10px;
+	border-radius: 16px;
+	background:
+		repeating-linear-gradient(
+			180deg,
+			transparent 0 13px,
+			color-mix(in srgb, var(--text-normal) 12%, transparent) 13px 16px,
+			transparent 16px 26px
+		),
+		var(--background-primary);
+}
+
+.demo-gallery figcaption {
+	margin-top: 8px;
+	color: var(--text-muted);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.demo-features {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 12px;
+	margin: 18px 0 0;
+	padding: 0;
+	list-style: none;
+	text-align: left;
+}
+
+.demo-features li {
+	padding: 14px 16px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 12px;
+	background: var(--background-primary);
+	color: var(--text-muted);
+}
+
+.demo-features strong {
+	display: block;
+	margin-bottom: 2px;
+	color: var(--text-normal);
+}
+
+.demo-footer {
+	padding: 48px 0 40px;
+	color: var(--text-muted);
+	font-size: 13px;
+	text-align: center;
+}
+
+/* ---- Bits Obsidian normally styles ------------------------------------------------------------ */
+
+.clickable-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: none;
+	border-radius: 5px;
+	background: none;
+	color: var(--text-muted);
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.clickable-icon:hover {
+	background: var(--background-modifier-hover);
+}
+
+.wha-toast button,
+.modal button:not(.clickable-icon) {
+	padding: 6px 14px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-secondary);
+	cursor: pointer;
+}
+
+.demo-modal-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: var(--layer-modal);
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding: 14vh 16px 16px;
+	background: rgba(0, 0, 0, 0.45);
+}
+
+.modal.wha-glass-modal {
+	width: min(520px, 100%);
+	padding: 20px 22px 18px;
+	text-align: left;
+}
+
+.modal .modal-close-button {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+}
+
+.modal .modal-title {
+	margin-bottom: 12px;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.demo-fineprint {
+	margin: 14px 0 0;
+	color: var(--text-faint);
+	font-size: 12px;
+}
+
+/* ---- Screenshot modes (?shot, ?gallery, ?noanim) ---------------------------------------------- */
+
+body.no-motion *,
+body.no-motion *::before,
+body.no-motion *::after {
+	animation: none !important;
+	transition: none !important;
+}
+
+body.shot {
+	background: var(--background-secondary);
+}
+
+body.shot .demo-header,
+body.shot .demo-hint,
+body.shot .demo-controls,
+body.shot .demo-section,
+body.shot .demo-footer {
+	display: none;
+}
+
+body.shot main {
+	width: 760px;
+	padding-top: 24px;
+}
+
+body.shot-gallery .demo-header,
+body.shot-gallery .demo-stage,
+body.shot-gallery .demo-section:not(.demo-gallery-section),
+body.shot-gallery .demo-footer {
+	display: none;
+}
+
+body.shot-gallery main {
+	width: 1240px;
+}
+
+body.shot-gallery .demo-gallery-section {
+	margin-top: 24px;
+}
+
+@media (max-width: 600px) {
+	.demo-header {
+		padding-top: 36px;
+	}
+
+	.demo-note {
+		padding: 20px 16px 28px;
+	}
+}

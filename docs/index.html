@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Word Hover Actions</title>
+		<meta
+			name="description"
+			content="Try the Word Hover Actions wheel for Obsidian: hold Shift over a word to link, format, extract, or look it up."
+		/>
+		<link rel="stylesheet" href="styles.css" />
+		<link rel="stylesheet" href="demo.css" />
+	</head>
+	<body class="theme-dark">
+		<header class="demo-header">
+			<p class="demo-eyebrow">Obsidian plugin</p>
+			<h1>Word Hover Actions</h1>
+			<p class="demo-lede">
+				Hold <kbd>Shift</kbd> over a word to open an action wheel: link or create notes, format text, extract
+				passages, and look up definitions.
+			</p>
+			<p class="demo-links">
+				<a class="demo-button demo-button-primary" href="https://github.com/jokeroct/word-hover-actions#installation"
+					>Install</a
+				>
+				<a class="demo-button" href="https://github.com/jokeroct/word-hover-actions">Source on GitHub</a>
+			</p>
+		</header>
+
+		<main>
+			<section class="demo-stage" aria-label="Interactive demo">
+				<div class="demo-hint">
+					Hold <kbd>Shift</kbd> and hover a word, or just click one. Select several words first to try Extract.
+				</div>
+				<article class="demo-pane">
+					<div class="demo-pane-tab">Research sample</div>
+					<div class="demo-note cm-editor">
+						<h2 class="demo-note-title">Research sample</h2>
+						<p data-words>
+							TB remains a leading infectious killer. Early TB diagnosis matters, and TB treatment takes months.
+						</p>
+						<p data-words>
+							Isoniazid resistance rose sharply in the cohort between 2019 and 2023. Patients with resistant strains
+							needed longer regimens.
+						</p>
+						<p data-words>
+							Background reading: see
+							<a class="internal-link" data-target="Isoniazid" href="#">Isoniazid</a>
+							and the Graph view to see how findings connect.
+						</p>
+					</div>
+				</article>
+				<div class="demo-controls">
+					<div class="demo-control">
+						<span class="demo-control-label">Color preset</span>
+						<div class="demo-presets wha-preset-picker"></div>
+					</div>
+					<div class="demo-control">
+						<span class="demo-control-label">Theme</span>
+						<div class="demo-segmented">
+							<button type="button" data-theme-choice="dark">Dark</button>
+							<button type="button" data-theme-choice="light">Light</button>
+						</div>
+					</div>
+					<div class="demo-control">
+						<span class="demo-control-label">Segments</span>
+						<div class="demo-segmented">
+							<button type="button" data-slots="4">4</button>
+							<button type="button" data-slots="6">6</button>
+							<button type="button" data-slots="8">8</button>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="demo-section demo-gallery-section">
+				<h2>Five presets, frosted glass</h2>
+				<p>Each follows Obsidian's light and dark themes. Hover them.</p>
+				<div class="demo-gallery"></div>
+			</section>
+
+			<section class="demo-section">
+				<h2>What the wheel does</h2>
+				<ul class="demo-features">
+					<li><strong>Link or create notes.</strong> Search your vault, or create a note with an editable title. Your wording is kept as the link's text.</li>
+					<li><strong>Toggle formatting.</strong> Bold, italic, highlight, strikethrough, and your own wrappers such as <code>%%comment%%</code>.</li>
+					<li><strong>Extract a passage.</strong> Move a selection into a new note that links back to its source.</li>
+					<li><strong>Define.</strong> Wikipedia and Wiktionary look-ups, and one click to turn the summary into a note.</li>
+					<li><strong>Link tools.</strong> Over an existing link: preview it, unlink it, point it elsewhere, or open it in a split.</li>
+					<li><strong>After linking.</strong> Save your wording as an alias, or link every other mention in the note at once.</li>
+				</ul>
+			</section>
+		</main>
+
+		<footer class="demo-footer">
+			<p>
+				MIT licensed · by <a href="https://github.com/jokeroct">MON.D.SAMA</a> · Icons by
+				<a href="https://lucide.dev">Lucide</a> (ISC) · Not affiliated with Obsidian.
+			</p>
+		</footer>
+
+		<script src="demo.js"></script>
+	</body>
+</html>

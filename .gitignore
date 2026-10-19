@@ -1,0 +1,9 @@
+# Dependencies and build output (main.js is built by the release workflow)
+node_modules/
+main.js
+*.map
+
+# Local testing only
+dev-vault/
+.claude/
+data.json

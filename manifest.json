@@ -1,0 +1,10 @@
+{
+  "id": "word-hover-actions",
+  "name": "Word Hover Actions",
+  "version": "1.0.0",
+  "minAppVersion": "1.14.4",
+  "description": "Hold Shift over a word to open an action wheel: link or create notes, format text, extract passages, and look up definitions.",
+  "author": "MON.D.SAMA",
+  "authorUrl": "https://github.com/jokeroct",
+  "isDesktopOnly": true
+}
