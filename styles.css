@@ -655,8 +655,8 @@
 .wha-preview-stage {
 	display: flex;
 	justify-content: center;
+	flex: 1;
 	padding: 20px 0;
-	margin-bottom: 8px;
 	border-radius: 12px;
 	background-color: var(--background-secondary);
 	background-image: repeating-linear-gradient(
@@ -670,6 +670,8 @@
 	background-position: center;
 }
 
+/* The preview and wrapper rows have no name; their controls take the whole row. */
+.wha-preview-setting .setting-item-info,
 .wha-wrapper-setting .setting-item-info {
 	display: none;
 }

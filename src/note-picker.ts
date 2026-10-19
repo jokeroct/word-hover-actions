@@ -152,7 +152,7 @@ export class NotePickerModal extends SuggestModal<Suggestion> {
 	}
 
 	onOpen(): void {
-		super.onOpen();
+		void super.onOpen();
 		this.inputEl.value = suggestTitle(this.request.text);
 		this.inputEl.dispatchEvent(new Event("input"));
 		this.inputEl.select();

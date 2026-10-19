@@ -218,7 +218,6 @@ main,
 .demo-note .is-link {
 	color: var(--text-accent);
 	text-decoration: underline;
-	text-decoration-color: color-mix(in srgb, var(--text-accent) 50%, transparent);
 	text-underline-offset: 3px;
 	cursor: pointer;
 }
@@ -449,11 +448,20 @@ main,
 
 /* ---- Screenshot modes (?shot, ?gallery, ?noanim) ---------------------------------------------- */
 
-body.no-motion *,
-body.no-motion *::before,
-body.no-motion *::after {
-	animation: none !important;
-	transition: none !important;
+/* Every animated rule in styles.css, prefixed with body.no-motion so it wins without !important. */
+body.no-motion .word-hover-actions-menu.wha-wheel,
+body.no-motion .wha-wheel .wha-wheel-svg,
+body.no-motion .wha-wheel .wha-seg,
+body.no-motion .wha-wheel .wha-wheel-seg,
+body.no-motion .wha-wheel .wha-seg-fill,
+body.no-motion .wha-wheel .wha-wheel-hub,
+body.no-motion .wha-wheel .wha-wheel-label,
+body.no-motion .wha-glass-modal button.mod-cta,
+body.no-motion .wha-toast,
+body.no-motion .wha-glass-modal.wha-glass-modal,
+body.no-motion .wha-preset-chip {
+	animation: none;
+	transition: none;
 }
 
 body.shot {

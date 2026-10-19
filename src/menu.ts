@@ -61,7 +61,6 @@ const CORNER = 4;
 const SEGMENT_GAP = 5;
 const SIDE_GAP_PX = 8;
 const EDGE_MARGIN_PX = 8;
-const SVG_NS = "http://www.w3.org/2000/svg";
 /** Keeps gradient ids unique when several wheels exist (e.g. in popout windows). */
 let gradientCounter = 0;
 
@@ -106,26 +105,28 @@ export class HoverMenu {
 		const count = spec.segments.length;
 		const g = geometryFor(count);
 		this.size = g.size;
-		this.el = doc.createElement("div");
-		// The size class sets the wheel's dimensions in styles.css (sizes match GEOMETRY).
-		this.el.className = `word-hover-actions-menu wha-wheel wha-wheel-${g.size === GEOMETRY[4].size ? 4 : g.size === GEOMETRY[6].size ? 6 : 8}`;
-		this.el.classList.add(...spec.themeClasses);
-		if (spec.variant) this.el.classList.add(spec.variant);
-		this.el.setAttribute("role", "menu");
+		// Created in the window that will show it (the editor may be in a popout), and attached in place().
+		this.el = (doc.defaultView ?? window).createDiv({
+			// The size class sets the wheel's dimensions in styles.css (sizes match GEOMETRY).
+			cls: [
+				"word-hover-actions-menu",
+				"wha-wheel",
+				`wha-wheel-${g.size === GEOMETRY[4].size ? 4 : g.size === GEOMETRY[6].size ? 6 : 8}`,
+				...spec.themeClasses,
+				...(spec.variant ? [spec.variant] : []),
+			],
+			attr: { role: "menu" },
+		});
 		// Keep focus and selection in the editor when the wheel is clicked.
 		this.el.addEventListener("mousedown", (event) => event.preventDefault());
 
-		const svg = this.el.appendChild(doc.createElementNS(SVG_NS, "svg"));
-		svg.classList.add("wha-wheel-svg");
-		svg.setAttribute("viewBox", `${-g.size / 2} ${-g.size / 2} ${g.size} ${g.size}`);
-		svg.setAttribute("width", String(g.size));
-		svg.setAttribute("height", String(g.size));
+		const svg = this.el.createSvg("svg", {
+			cls: "wha-wheel-svg",
+			attr: { viewBox: `${-g.size / 2} ${-g.size / 2} ${g.size} ${g.size}`, width: g.size, height: g.size },
+		});
 		const { glass, accent } = this.addGradients(svg, g);
 
-		const hub = svg.appendChild(doc.createElementNS(SVG_NS, "circle"));
-		hub.classList.add("wha-wheel-hub");
-		hub.setAttribute("r", String(g.hubR));
-		hub.setAttribute("aria-label", "Close");
+		const hub = svg.createSvg("circle", { cls: "wha-wheel-hub", attr: { r: g.hubR, "aria-label": "Close" } });
 		hub.addEventListener("click", (event) => {
 			event.preventDefault();
 			onClose();
@@ -137,36 +138,26 @@ export class HoverMenu {
 			const angle = -Math.PI / 2 + i * span;
 			const d = segmentPath(angle, span, g);
 			// A glass base that takes the pointer, and an accent overlay that fades in on hover.
-			const group = svg.appendChild(doc.createElementNS(SVG_NS, "g"));
-			group.classList.add("wha-seg");
+			const group = svg.createSvg("g", { cls: "wha-seg" });
 			group.style.setProperty("--i", String(i));
-			const base = group.appendChild(doc.createElementNS(SVG_NS, "path"));
-			base.classList.add("wha-wheel-seg");
-			base.setAttribute("d", d);
-			base.setAttribute("fill", `url(#${glass})`);
-			base.setAttribute("stroke", `url(#${glass})`);
-			base.dataset.action = segment.id;
+			const base = group.createSvg("path", {
+				cls: "wha-wheel-seg",
+				attr: { d, fill: `url(#${glass})`, stroke: `url(#${glass})`, "data-action": segment.id },
+			});
 			if (segment.empty) {
 				group.classList.add("is-empty");
 				return;
 			}
-			const fill = group.appendChild(doc.createElementNS(SVG_NS, "path"));
-			fill.classList.add("wha-seg-fill");
-			fill.setAttribute("d", d);
-			fill.setAttribute("fill", `url(#${accent})`);
-			fill.setAttribute("stroke", `url(#${accent})`);
+			group.createSvg("path", { cls: "wha-seg-fill", attr: { d, fill: `url(#${accent})`, stroke: `url(#${accent})` } });
 			base.setAttribute("role", "menuitem");
 			base.setAttribute("aria-label", segment.description);
 
-			const label = this.el.appendChild(doc.createElement("div"));
-			label.className = "wha-wheel-label";
+			const label = this.el.createDiv({ cls: "wha-wheel-label" });
 			label.style.setProperty("--i", String(i));
 			label.style.left = `${g.size / 2 + mid * Math.cos(angle)}px`;
 			label.style.top = `${g.size / 2 + mid * Math.sin(angle)}px`;
-			const icon = label.appendChild(doc.createElement("span"));
-			icon.className = "wha-wheel-icon";
-			setIcon(icon, segment.icon);
-			label.appendChild(doc.createElement("span")).textContent = segment.label;
+			setIcon(label.createSpan({ cls: "wha-wheel-icon" }), segment.icon);
+			label.createSpan({ text: segment.label });
 
 			for (const el of [group, label]) {
 				if (segment.active) el.classList.add("is-active");
@@ -193,8 +184,7 @@ export class HoverMenu {
 			});
 		});
 
-		this.hubText = this.el.appendChild(doc.createElement("div"));
-		this.hubText.className = "wha-wheel-center";
+		this.hubText = this.el.createDiv({ cls: "wha-wheel-center" });
 		this.showHub(spec.hub, spec.hubMuted);
 	}
 
@@ -205,16 +195,10 @@ export class HoverMenu {
 	 */
 	private addGradients(svg: SVGElement, g: Geometry): { glass: string; accent: string } {
 		const id = `wha-${++gradientCounter}`;
-		const defs = svg.appendChild(this.doc.createElementNS(SVG_NS, "defs"));
+		const defs = svg.createSvg("defs");
 		const gradient = (name: string, stops: string[], attrs: Record<string, string>) => {
-			const el = defs.appendChild(this.doc.createElementNS(SVG_NS, "linearGradient"));
-			el.id = `${id}-${name}`;
-			for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
-			stops.forEach((cls, i) => {
-				const stop = el.appendChild(this.doc.createElementNS(SVG_NS, "stop"));
-				stop.setAttribute("offset", String(i / (stops.length - 1)));
-				stop.classList.add(cls);
-			});
+			const el = defs.createSvg("linearGradient", { attr: { id: `${id}-${name}`, ...attrs } });
+			stops.forEach((cls, i) => el.createSvg("stop", { cls, attr: { offset: i / (stops.length - 1) } }));
 			return el.id;
 		};
 		return {

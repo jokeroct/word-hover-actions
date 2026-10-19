@@ -2,6 +2,15 @@
 
 What has been tested so far, and what hasn't.
 
+## Release 1.0.1
+
+Clears the code warnings from the Community directory review. Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness:
+- **Settings tab, now declarative:** every section renders, and Obsidian's settings search finds its rows (e.g. "color preset"). Choosing a preset, switching to 8 segments, and changing a slot all update the preview and keep the scroll position. Adding, renaming, and deleting a custom wrapper works. The toggle and dropdowns save to `data.json`. An invalid language code is still ignored.
+- **Popout windows:** Settings opens in its own window in 1.14, so the preview wheel there is built in a second window's document, and it renders correctly.
+- **Wheel and toast**, now built with Obsidian's `createEl` helpers: same segments, icons, labels, and hover text as before. The toast's buttons work (link all mentions) and it closes.
+- **Demo page:** same markup as 1.0.0 for the gallery, note, wheel, toast, and dialogs. `?noanim` still stops all motion.
+- Linted with `eslint-plugin-obsidianmd` 0.4.2 (the review's rules): no warnings in `src/`. The demo's stand-in for Obsidian's DOM helpers (`demo/obsidian-shim.ts`) still calls the native DOM methods it replaces.
+
 ## Release 1.0.0
 
 - Installed into a real everyday vault (with 11 other community plugins and a community theme); the wheel works there.

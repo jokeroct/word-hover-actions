@@ -105,16 +105,9 @@ interface ToastButton {
 function showToast(doc: Document, message: string, buttons: ToastButton[], classes: string[]): void {
 	const win = doc.defaultView ?? window;
 	doc.querySelector(".wha-toast")?.remove();
-	const el = doc.body.appendChild(doc.createElement("div"));
-	el.classList.add("wha-toast", ...classes);
-	el.setAttribute("role", "status");
-
-	const header = el.appendChild(doc.createElement("div"));
-	header.className = "wha-toast-message";
-	header.textContent = message;
-	const close = el.appendChild(doc.createElement("div"));
-	close.className = "wha-toast-close clickable-icon";
-	close.setAttribute("aria-label", "Close");
+	const el = doc.body.createDiv({ cls: ["wha-toast", ...classes], attr: { role: "status" } });
+	el.createDiv({ cls: "wha-toast-message", text: message });
+	const close = el.createDiv({ cls: "wha-toast-close clickable-icon", attr: { "aria-label": "Close" } });
 	setIcon(close, "x");
 
 	let timer: number | null = null;
@@ -131,13 +124,10 @@ function showToast(doc: Document, message: string, buttons: ToastButton[], class
 	el.addEventListener("mouseleave", () => schedule(4000));
 
 	let remaining = buttons.length;
-	const row = el.appendChild(doc.createElement("div"));
-	row.className = "wha-toast-actions";
+	const row = el.createDiv({ cls: "wha-toast-actions" });
 	for (const button of buttons) {
-		const action = row.appendChild(doc.createElement("button"));
-		action.className = "mod-cta wha-btn-primary";
-		action.textContent = button.label;
-		action.addEventListener("click", async () => {
+		const action = row.createEl("button", { cls: "mod-cta wha-btn-primary", text: button.label });
+		const press = async () => {
 			if (action.disabled) return;
 			action.disabled = true;
 			try {
@@ -150,7 +140,9 @@ function showToast(doc: Document, message: string, buttons: ToastButton[], class
 			action.textContent = button.done;
 			action.classList.remove("mod-cta", "wha-btn-primary");
 			if (--remaining === 0) schedule(1500);
-		});
+		};
+		// press() catches and reports its own failures, so the promise can be dropped.
+		action.addEventListener("click", () => void press());
 	}
 	schedule(TOAST_MS);
 }

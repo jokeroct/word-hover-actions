@@ -87,12 +87,18 @@ export function isAmbiguous(note: NoteEntry, counts: ReadonlyMap<string, number>
 	return (counts.get(normalizeName(note.basename)) ?? 0) > 1;
 }
 
+/**
+ * C0 control characters (U+0000–U+001F) and DEL, which file names can't contain. Written as \p{Cc}
+ * minus its C1 range (U+0080–U+009F) because linters reject control characters in regex literals.
+ */
+const CONTROL_CHAR = /(?![\u0080-\u009f])\p{Cc}/u;
+
 /** A filename-safe title suggested from the hovered text. */
 export function suggestTitle(text: string): string {
 	return text
 		.replace(/[*=~`]+/g, "")
 		.replace(/[\\/:?"<>|#^[\]]/g, " ")
-		.replace(/[\u0000-\u001f\u007f]/g, "")
+		.replace(new RegExp(CONTROL_CHAR, "gu"), "")
 		.replace(/\s+/g, " ")
 		.trim()
 		.replace(/^[._\s]+|[._\s]+$/g, "");
@@ -110,7 +116,7 @@ export function validateTitle(raw: string): TitleCheck {
 	if (invalid) return { ok: false, reason: `“${invalid[0]}” can't be used in note names` };
 	const linkBreaking = /[#^[\]]/.exec(title);
 	if (linkBreaking) return { ok: false, reason: `“${linkBreaking[0]}” would break links to the note` };
-	if (/[\u0000-\u001f\u007f]/.test(title)) return { ok: false, reason: "Title contains control characters" };
+	if (CONTROL_CHAR.test(title)) return { ok: false, reason: "Title contains control characters" };
 	if (title.startsWith(".")) return { ok: false, reason: "Note names can't start with a dot" };
 	if (title.endsWith(".")) return { ok: false, reason: "Note names can't end with a dot" };
 	if (RESERVED_WINDOWS_NAME.test(title)) return { ok: false, reason: `“${title}” is a reserved name on Windows` };

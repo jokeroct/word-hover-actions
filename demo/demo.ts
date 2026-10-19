@@ -65,17 +65,14 @@ function tokenize(root: HTMLElement): void {
 	for (const p of root.querySelectorAll<HTMLElement>("[data-words]")) {
 		for (const node of [...p.childNodes]) {
 			if (node.nodeType === Node.TEXT_NODE) {
-				const fragment = document.createDocumentFragment();
+				const fragment = createFragment();
 				for (const part of (node.textContent ?? "").split(/([\p{L}\p{N}][\p{L}\p{N}'’-]*)/u)) {
 					if (!part) continue;
-					if (/^[\p{L}\p{N}]/u.test(part)) {
-						const span = fragment.appendChild(document.createElement("span"));
-						span.className = "w";
-						span.textContent = part;
-					} else fragment.appendChild(document.createTextNode(part));
+					if (/^[\p{L}\p{N}]/u.test(part)) fragment.createSpan({ cls: "w", text: part });
+					else fragment.appendChild(document.createTextNode(part));
 				}
 				node.replaceWith(fragment);
-			} else if (node instanceof HTMLElement && node.matches("a.internal-link")) {
+			} else if (node.instanceOf(HTMLElement) && node.matches("a.internal-link")) {
 				node.classList.add("w", "is-link");
 			}
 		}
@@ -161,7 +158,7 @@ function boxOf(spans: HTMLElement[]): Box {
 }
 
 function close(): void {
-	if (leaveTimer !== null) clearTimeout(leaveTimer);
+	if (leaveTimer !== null) window.clearTimeout(leaveTimer);
 	leaveTimer = null;
 	if (!current) return;
 	current.menu.destroy();
@@ -189,7 +186,7 @@ function open(span: HTMLElement): void {
 }
 
 function cancelHover(): void {
-	if (hoverTimer !== null) clearTimeout(hoverTimer);
+	if (hoverTimer !== null) window.clearTimeout(hoverTimer);
 	hoverTimer = null;
 	hoverSpan = null;
 }
@@ -224,7 +221,7 @@ document.addEventListener("mousemove", (event) => {
 	if (!current) return;
 	const inside = inBox(current.box, pointer, REGION_SLACK_PX) || current.menu.contains(pointer, REGION_SLACK_PX);
 	if (inside) {
-		if (leaveTimer !== null) clearTimeout(leaveTimer);
+		if (leaveTimer !== null) window.clearTimeout(leaveTimer);
 		leaveTimer = null;
 	} else if (leaveTimer === null) leaveTimer = window.setTimeout(close, LEAVE_GRACE_MS);
 });
@@ -310,20 +307,14 @@ function extract(target: Target): void {
 function define(text: string): void {
 	const entry = DEFINITIONS[key(text)];
 	openModal(text, (body) => {
-		const wiki = body.appendChild(document.createElement("div"));
-		wiki.className = "wha-define-section";
-		wiki.appendChild(Object.assign(document.createElement("div"), { className: "wha-define-heading", textContent: `Wikipedia · ${entry?.title ?? text}` }));
-		wiki.appendChild(
-			Object.assign(document.createElement("p"), {
-				textContent: entry?.summary ?? "In Obsidian, Define shows the Wikipedia summary for this word or phrase.",
-			}),
-		);
-		const dict = body.appendChild(document.createElement("div"));
-		dict.className = "wha-define-section";
-		dict.appendChild(Object.assign(document.createElement("div"), { className: "wha-define-heading", textContent: "Wiktionary" }));
-		const list = dict.appendChild(document.createElement("ol"));
-		for (const sense of entry?.senses ?? ["…and its Wiktionary definitions."]) list.appendChild(Object.assign(document.createElement("li"), { textContent: sense }));
-		body.appendChild(Object.assign(document.createElement("p"), { className: "demo-fineprint", textContent: "Demo text. The plugin looks these up live, only when you click Define." }));
+		const wiki = body.createDiv({ cls: "wha-define-section" });
+		wiki.createDiv({ cls: "wha-define-heading", text: `Wikipedia · ${entry?.title ?? text}` });
+		wiki.createEl("p", { text: entry?.summary ?? "In Obsidian, Define shows the Wikipedia summary for this word or phrase." });
+		const dict = body.createDiv({ cls: "wha-define-section" });
+		dict.createDiv({ cls: "wha-define-heading", text: "Wiktionary" });
+		const list = dict.createEl("ol");
+		for (const sense of entry?.senses ?? ["…and its Wiktionary definitions."]) list.createEl("li", { text: sense });
+		body.createEl("p", { cls: "demo-fineprint", text: "Demo text. The plugin looks these up live, only when you click Define." });
 	}, "wha-define");
 }
 
@@ -335,10 +326,9 @@ function runLinkTool(id: string, target: Target): void {
 		delete span.dataset.target;
 	} else if (id === "peek") {
 		openModal(title, (body) => {
-			body.appendChild(Object.assign(document.createElement("div"), { className: "wha-peek-meta", textContent: `${title}.md · linked from 3 notes` }));
-			const preview = body.appendChild(document.createElement("div"));
-			preview.className = "wha-peek-body";
-			preview.appendChild(Object.assign(document.createElement("p"), { textContent: DEFINITIONS[key(target.text)]?.summary ?? `A note about ${title}.` }));
+			body.createDiv({ cls: "wha-peek-meta", text: `${title}.md · linked from 3 notes` });
+			const preview = body.createDiv({ cls: "wha-peek-body" });
+			preview.createEl("p", { text: DEFINITIONS[key(target.text)]?.summary ?? `A note about ${title}.` });
 		}, "wha-peek");
 	} else {
 		toast(id === "retarget" ? "In Obsidian, Change opens the note picker to point this link elsewhere." : `In Obsidian, Split opens “${title}” in a split pane.`, []);
@@ -355,18 +345,17 @@ interface ToastButton {
 
 function toast(message: string, buttons: ToastButton[]): void {
 	document.querySelector(".wha-toast")?.remove();
-	const el = document.body.appendChild(document.createElement("div"));
-	el.classList.add("wha-toast", ...themeClasses(state.preset));
-	el.appendChild(Object.assign(document.createElement("div"), { className: "wha-toast-message", textContent: message }));
-	const closeButton = el.appendChild(Object.assign(document.createElement("button"), { className: "wha-toast-close clickable-icon", textContent: "×", ariaLabel: "Close" }));
+	const el = document.body.createDiv({ cls: ["wha-toast", ...themeClasses(state.preset)] });
+	el.createDiv({ cls: "wha-toast-message", text: message });
+	const closeButton = el.createEl("button", { cls: "wha-toast-close clickable-icon", text: "×", attr: { "aria-label": "Close" } });
 	closeButton.addEventListener("click", () => el.remove());
 	let timer = window.setTimeout(() => el.remove(), 9000);
-	el.addEventListener("mouseenter", () => clearTimeout(timer));
+	el.addEventListener("mouseenter", () => window.clearTimeout(timer));
 	el.addEventListener("mouseleave", () => (timer = window.setTimeout(() => el.remove(), 4000)));
 	if (buttons.length === 0) return;
-	const row = el.appendChild(Object.assign(document.createElement("div"), { className: "wha-toast-actions" }));
+	const row = el.createDiv({ cls: "wha-toast-actions" });
 	for (const button of buttons) {
-		const action = row.appendChild(Object.assign(document.createElement("button"), { className: "mod-cta wha-btn-primary", textContent: button.label }));
+		const action = row.createEl("button", { cls: "mod-cta wha-btn-primary", text: button.label });
 		action.addEventListener("click", () => {
 			if (action.disabled) return;
 			button.run();
@@ -383,14 +372,12 @@ function closeModal(): void {
 
 function openModal(title: string, fill: (body: HTMLElement) => void, contentClass: string): void {
 	closeModal();
-	const backdrop = document.body.appendChild(Object.assign(document.createElement("div"), { className: "demo-modal-backdrop" }));
-	const modal = backdrop.appendChild(document.createElement("div"));
-	modal.classList.add("modal", "wha-glass-modal", ...themeClasses(state.preset));
-	modal.setAttribute("role", "dialog");
-	const closeButton = modal.appendChild(Object.assign(document.createElement("button"), { className: "modal-close-button clickable-icon", textContent: "×", ariaLabel: "Close" }));
+	const backdrop = document.body.createDiv({ cls: "demo-modal-backdrop" });
+	const modal = backdrop.createDiv({ cls: ["modal", "wha-glass-modal", ...themeClasses(state.preset)], attr: { role: "dialog" } });
+	const closeButton = modal.createEl("button", { cls: "modal-close-button clickable-icon", text: "×", attr: { "aria-label": "Close" } });
 	closeButton.addEventListener("click", closeModal);
-	modal.appendChild(Object.assign(document.createElement("div"), { className: "modal-title", textContent: title }));
-	const body = modal.appendChild(Object.assign(document.createElement("div"), { className: `modal-content ${contentClass}` }));
+	modal.createDiv({ cls: "modal-title", text: title });
+	const body = modal.createDiv({ cls: `modal-content ${contentClass}` });
 	fill(body);
 	backdrop.addEventListener("mousedown", (event) => event.target === backdrop && closeModal());
 }
@@ -407,11 +394,12 @@ function renderControls(): void {
 	if (presets) {
 		presets.replaceChildren();
 		for (const id of PRESET_IDS) {
-			const chip = presets.appendChild(document.createElement("button"));
-			chip.className = `wha-preset-chip${state.preset === id ? " is-selected" : ""}`;
-			chip.setAttribute("aria-pressed", String(state.preset === id));
-			chip.appendChild(document.createElement("span")).classList.add("wha-preset-swatch", ...themeClasses(id));
-			chip.appendChild(Object.assign(document.createElement("span"), { className: "wha-preset-name", textContent: PRESETS[id].name }));
+			const chip = presets.createEl("button", {
+				cls: `wha-preset-chip${state.preset === id ? " is-selected" : ""}`,
+				attr: { "aria-pressed": String(state.preset === id) },
+			});
+			chip.createSpan({ cls: ["wha-preset-swatch", ...themeClasses(id)] });
+			chip.createSpan({ cls: "wha-preset-name", text: PRESETS[id].name });
 			chip.addEventListener("click", () => {
 				state.preset = id;
 				close();
@@ -443,7 +431,7 @@ function renderGallery(): void {
 	if (!gallery) return;
 	gallery.replaceChildren();
 	for (const id of PRESET_IDS) {
-		const figure = gallery.appendChild(document.createElement("figure"));
+		const figure = gallery.createEl("figure");
 		const segments = slotsFor(6).map((slot, i): WheelSegment => {
 			const info = BUILTIN_ACTIONS[slot as keyof typeof BUILTIN_ACTIONS];
 			return { id: slot, icon: info.icon, label: info.label, description: info.title, enabled: true, active: i === 1 };
@@ -451,7 +439,7 @@ function renderGallery(): void {
 		const menu = new HoverMenu(document, { segments, hub: PRESETS[id].name, hubMuted: false, themeClasses: themeClasses(id) }, () => undefined, () => undefined);
 		menu.el.classList.add("is-preview");
 		figure.appendChild(menu.el);
-		figure.appendChild(Object.assign(document.createElement("figcaption"), { textContent: PRESETS[id].name }));
+		figure.createEl("figcaption", { text: PRESETS[id].name });
 	}
 }
 
@@ -491,4 +479,4 @@ tokenize(note);
 applyTheme();
 renderControls();
 renderGallery();
-requestAnimationFrame(applyShotParams);
+window.requestAnimationFrame(applyShotParams);
