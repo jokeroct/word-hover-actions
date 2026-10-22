@@ -6,7 +6,8 @@
     "lib": [
       "DOM",
       "DOM.Iterable",
-      "ES2021"
+      "ES2021",
+      "ES2022.Intl"
     ],
     "types": [],
     "strict": true,

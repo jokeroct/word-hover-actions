@@ -1,4 +1,5 @@
 import { type SlotAction, isBuiltin } from "./actions";
+import { SHORTEN_RATIOS, type ShortenLength } from "./text/shorten";
 import { type ColorPreset, isPreset } from "./theme";
 
 export type SlotCount = 4 | 6 | 8;
@@ -26,8 +27,21 @@ export interface WordHoverSettings {
 	extractReplace: "link" | "embed";
 	/** Wikipedia/Wiktionary language code. */
 	lookupLanguage: string;
+	/** How much of a passage Shorten keeps, to begin with. */
+	shortenLength: ShortenLength;
+	/** Built-in (offline: picks key sentences) or a local AI through Ollama (rewrites). */
+	shortenEngine: "builtin" | "ollama";
+	/** Ollama's address, contacted only when the engine is "ollama". */
+	ollamaUrl: string;
+	ollamaModel: string;
 	/** Colors for the wheel, toast, and dialogs. */
 	colorPreset: ColorPreset;
+}
+
+/** An http(s) address with a host, without a trailing slash. */
+export function cleanUrl(value: string): string | null {
+	const url = value.trim().replace(/\/+$/, "");
+	return /^https?:\/\/[^\s/]+/i.test(url) ? url : null;
 }
 
 export const DEFAULT_SETTINGS: WordHoverSettings = {
@@ -45,6 +59,10 @@ export const DEFAULT_SETTINGS: WordHoverSettings = {
 	learnAliases: "ask",
 	extractReplace: "link",
 	lookupLanguage: "en",
+	shortenLength: "half",
+	shortenEngine: "builtin",
+	ollamaUrl: "http://localhost:11434",
+	ollamaModel: "llama3.2",
 	colorPreset: "accent",
 };
 
@@ -82,6 +100,12 @@ export function loadSettings(saved: unknown): WordHoverSettings {
 			: DEFAULT_SETTINGS.learnAliases,
 		extractReplace: data.extractReplace === "embed" ? "embed" : "link",
 		lookupLanguage: /^[a-z]{2,3}(-[a-z]+)?$/i.test(data.lookupLanguage ?? "") ? data.lookupLanguage! : DEFAULT_SETTINGS.lookupLanguage,
+		shortenLength: Object.prototype.hasOwnProperty.call(SHORTEN_RATIOS, data.shortenLength ?? "")
+			? data.shortenLength!
+			: DEFAULT_SETTINGS.shortenLength,
+		shortenEngine: data.shortenEngine === "ollama" ? "ollama" : "builtin",
+		ollamaUrl: cleanUrl(data.ollamaUrl ?? "") ?? DEFAULT_SETTINGS.ollamaUrl,
+		ollamaModel: typeof data.ollamaModel === "string" && data.ollamaModel.trim() ? data.ollamaModel.trim() : DEFAULT_SETTINGS.ollamaModel,
 		colorPreset: isPreset(data.colorPreset) ? data.colorPreset : DEFAULT_SETTINGS.colorPreset,
 	};
 }

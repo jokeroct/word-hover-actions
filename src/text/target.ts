@@ -2,6 +2,7 @@ import { blockReason, frontmatterEnd } from "./context";
 import { type FormatPlan, planFormat } from "./format";
 import { type LinkInfo, linkAt } from "./links";
 import { REASON } from "./reasons";
+import { type ShortenPlan, paragraphAt, selectionPassage } from "./shorten";
 import type { DocLike, Span } from "./spans";
 import { wordAt } from "./word";
 
@@ -33,6 +34,8 @@ export interface HoverTarget extends Span {
 	extract: ExtractPlan;
 	/** Look-ups only read, so they work in code and links too. */
 	lookup: LookupPlan;
+	/** The selection, or without one the paragraph around the word. */
+	shorten: ShortenPlan;
 }
 
 /** Optional extra check, e.g. against the editor's syntax tree. Returns a reason to block, or null. */
@@ -148,5 +151,6 @@ export function resolveTarget(
 		link: editable ? planLink(doc, span) : refused,
 		extract: planExtract(doc, span, source, text),
 		lookup: planLookup(text, multiline),
+		shorten: source === "selection" ? selectionPassage(doc, span) : paragraphAt(doc, span.from),
 	};
 }

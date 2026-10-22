@@ -1,9 +1,18 @@
 import { type App, PluginSettingTab, type Setting, type SettingDefinition, type SettingDefinitionItem } from "obsidian";
 import { BUILTIN_ACTIONS, type SlotAction, isBuiltin } from "./actions";
 import { HoverMenu, type WheelSegment } from "./menu";
+import { LENGTH_OPTIONS } from "./modals";
 import { PRESETS, PRESET_IDS, themeClasses } from "./theme";
 import type WordHoverActionsPlugin from "./main";
-import { SLOT_COUNTS, type SlotCount, type WordHoverSettings, resolveSlots, slotPositionNames } from "./settings-model";
+import {
+	DEFAULT_SETTINGS,
+	SLOT_COUNTS,
+	type SlotCount,
+	type WordHoverSettings,
+	cleanUrl,
+	resolveSlots,
+	slotPositionNames,
+} from "./settings-model";
 
 type SettingKey = keyof WordHoverSettings;
 
@@ -204,6 +213,67 @@ export class WordHoverSettingTab extends PluginSettingTab {
 							type: "dropdown",
 							key: "extractReplace",
 							options: { link: "A link to the new note", embed: "An embed of the new note" },
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Shorten",
+				items: [
+					{
+						name: "Length",
+						desc: "How much of the paragraph or selection to keep. You can change it in the dialog each time.",
+						control: { type: "dropdown", key: "shortenLength", options: LENGTH_OPTIONS },
+					},
+					{
+						name: "Method",
+						desc: "Built-in works offline: it keeps the key sentences in their own wording and trims filler. A local AI rewrites the text; it needs Ollama running on your computer.",
+						render: (setting) => {
+							setting.addDropdown((dropdown) =>
+								dropdown
+									.addOptions({ builtin: "Built-in (offline)", ollama: "Local AI (Ollama)" })
+									.setValue(settings.shortenEngine)
+									.onChange(async (value) => {
+										settings.shortenEngine = value === "ollama" ? "ollama" : "builtin";
+										await saveAndUpdate();
+									}),
+							);
+						},
+					},
+					{
+						name: "Ollama address",
+						desc: "Shorten sends the passage here, and only here, when you use it.",
+						visible: () => settings.shortenEngine === "ollama",
+						render: (setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder(DEFAULT_SETTINGS.ollamaUrl)
+									.setValue(settings.ollamaUrl)
+									.onChange(async (value) => {
+										const url = cleanUrl(value);
+										if (!url) return;
+										settings.ollamaUrl = url;
+										await save();
+									}),
+							);
+						},
+					},
+					{
+						name: "Ollama model",
+						desc: "A model you have downloaded with Ollama, such as llama3.2 or qwen2.5.",
+						visible: () => settings.shortenEngine === "ollama",
+						render: (setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder(DEFAULT_SETTINGS.ollamaModel)
+									.setValue(settings.ollamaModel)
+									.onChange(async (value) => {
+										if (!value.trim()) return;
+										settings.ollamaModel = value.trim();
+										await save();
+									}),
+							);
 						},
 					},
 				],

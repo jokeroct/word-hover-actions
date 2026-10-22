@@ -20,9 +20,10 @@ Hold Shift and hover a word, or rest the pointer on a word and press Shift. The 
 | **Bold** / **Italic** / **Highlight** / **Strike** | Toggle `**text**`, `*text*`, `==text==`, `~~text~~`. Already-applied formatting is marked, and toggling removes it. |
 | **Extract** | Moves a selected passage (several lines are fine) into a new note and leaves a link or an embed in its place. The new note links back with a `source` property. |
 | **Define** | Shows the Wikipedia summary and Wiktionary definitions. **Create linked note** turns the summary into a note and links the word to it. |
+| **Shorten** | Shortens the selection, or the whole paragraph under the pointer, to about a third, half, or two-thirds. The result opens in an editable preview, with **Replace**, **Insert below**, and **Copy**. Works offline: it keeps the key sentences in their own wording and trims filler. Optionally, a local AI (Ollama) can rewrite it instead. |
 | **Custom wrappers** | Your own toggles, such as `%%comment%%`, `$math$`, or `<u>underline</u>`. |
 
-The wheel holds 4, 6, or 8 actions (6 by default), and you choose which action goes in each slot.
+The wheel holds 4, 6, or 8 actions (6 by default), and you choose which action goes in each slot. Shorten isn't in the default layouts; put it in a slot in Settings.
 
 ### Link tools
 
@@ -69,13 +70,17 @@ The wheel, the dialogs, and the toast share a frosted-glass look in light and da
   - Offer to link other mentions.
   - Learn aliases: *Ask each time*, *Always*, or *Never*.
 - **Extract to note:** replace the passage with a link or an embed.
-- **Look up:** the Wikipedia/Wiktionary language (default `en`).
+- **Shorten:** how much to keep (default about half), and the method: *Built-in (offline)* or *Local AI (Ollama)*, with Ollama's address and model.
+- **Look up:** the Wikipedia/Wiktionary language (default `en`). Shorten also uses it to split sentences; it trims wordy phrasing in English only.
 
 ## Network use
 
-Word Hover Actions works offline, with one exception, which you trigger yourself:
+Word Hover Actions works offline, with two exceptions, which you trigger yourself:
 
-- **Define** sends the word or phrase you clicked to **Wikipedia** (`<language>.wikipedia.org`) and **Wiktionary** (`en.wiktionary.org`), to show its summary and definitions. Nothing is sent when you merely hover, and nothing else ever leaves your computer.
+- **Define** sends the word or phrase you clicked to **Wikipedia** (`<language>.wikipedia.org`) and **Wiktionary** (`en.wiktionary.org`), to show its summary and definitions.
+- **Shorten**, only if you choose *Local AI (Ollama)* in Settings, sends the passage to your Ollama server: `http://localhost:11434` by default, a program on your own computer. With the built-in method (the default), nothing is sent.
+
+Nothing is sent when you merely hover, and nothing else ever leaves your computer.
 
 There is no telemetry, no account, and no tracking. Your settings stay in the plugin's own data file inside your vault.
 

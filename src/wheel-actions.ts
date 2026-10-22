@@ -5,7 +5,7 @@ import { type ActionInfo, BUILTIN_ACTIONS, LINK_TOOLS, LINK_TOOL_ORDER, type Slo
 import { offerFollowUps } from "./follow-ups";
 import type WordHoverActionsPlugin from "./main";
 import type { WheelSegment, WheelSpec } from "./menu";
-import { countBacklinks, DefineModal, ExtractModal, PeekModal } from "./modals";
+import { countBacklinks, DefineModal, ExtractModal, PeekModal, ShortenModal } from "./modals";
 import type { LinkRequest } from "./note-picker";
 import { type CustomWrapper, resolveSlots } from "./settings-model";
 import { type FormatPlan, planWrap } from "./text/format";
@@ -233,6 +233,16 @@ export function runWheelAction(ctx: WheelContext, id: string): void {
 		case "define":
 			if (!target.lookup.ok) return;
 			new DefineModal(plugin.app, plugin.settings, target.lookup.term, linkRequest(ctx, true), ctx.sourcePath).open();
+			return;
+		case "shorten":
+			if (!target.shorten.ok) return;
+			new ShortenModal(plugin.app, plugin.settings, {
+				view: ctx.view,
+				editor: ctx.editor,
+				sourcePath: ctx.sourcePath,
+				doc: ctx.doc,
+				passage: target.shorten,
+			}).open();
 			return;
 		default: {
 			const wrapper = wrapperFor(ctx, id);

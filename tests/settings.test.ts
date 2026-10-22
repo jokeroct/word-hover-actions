@@ -24,6 +24,18 @@ describe("loadSettings", () => {
 			lookupLanguage: "en",
 		});
 	});
+
+	it("keeps valid Shorten settings and repairs invalid ones", () => {
+		expect(
+			loadSettings({ shortenLength: "third", shortenEngine: "ollama", ollamaUrl: "http://127.0.0.1:11434/", ollamaModel: " qwen2.5 " }),
+		).toMatchObject({ shortenLength: "third", shortenEngine: "ollama", ollamaUrl: "http://127.0.0.1:11434", ollamaModel: "qwen2.5" });
+		expect(loadSettings({ shortenLength: "toString", shortenEngine: "cloud", ollamaUrl: "file:///etc", ollamaModel: "" })).toMatchObject({
+			shortenLength: "half",
+			shortenEngine: "builtin",
+			ollamaUrl: "http://localhost:11434",
+			ollamaModel: "llama3.2",
+		});
+	});
 });
 
 describe("color presets", () => {

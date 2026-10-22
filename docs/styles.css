@@ -356,6 +356,11 @@
 	border-radius: 4px;
 }
 
+/* The same target inside a callout shown rendered, marked with a CSS custom highlight. */
+::highlight(wha-hover-target) {
+	background-color: color-mix(in srgb, var(--wha-accent-1, var(--interactive-accent)) 24%, transparent);
+}
+
 /* ---- Buttons ---------------------------------------------------------------------------- */
 
 .wha-theme .wha-btn-primary,
@@ -533,6 +538,26 @@
 	color: var(--wha-text-muted);
 	font-size: var(--font-ui-small);
 	white-space: pre-wrap;
+}
+
+/* Shorten: the editable result, and how it was made with its word count. */
+.wha-shorten .wha-shorten-output {
+	width: 100%;
+	min-height: 9em;
+	padding: 10px 14px;
+	resize: vertical;
+	background-color: color-mix(in srgb, var(--background-primary) 55%, transparent);
+	border: 1px solid var(--wha-glass-border);
+	border-radius: 10px;
+	box-shadow: inset 3px 0 0 var(--wha-accent-1);
+	font-size: var(--font-ui-medium);
+	line-height: 1.5;
+}
+
+.wha-shorten .wha-shorten-status {
+	margin-top: 6px;
+	color: var(--wha-text-muted);
+	font-size: var(--font-ui-smaller);
 }
 
 .wha-define .wha-define-status {

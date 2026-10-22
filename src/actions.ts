@@ -1,5 +1,5 @@
 /** Actions that can be placed in a wheel slot. */
-export type BuiltinActionId = "link" | "bold" | "italic" | "highlight" | "strikethrough" | "extract" | "define";
+export type BuiltinActionId = "link" | "bold" | "italic" | "highlight" | "strikethrough" | "extract" | "define" | "shorten";
 /** A slot holds a built-in action, a custom wrapper (`custom:<id>`), or nothing. */
 export type SlotAction = BuiltinActionId | `custom:${string}` | "none";
 /** Tools offered when the hovered word is already a link. */
@@ -23,6 +23,7 @@ export const BUILTIN_ACTIONS: Record<BuiltinActionId, ActionInfo> = {
 	strikethrough: { label: "Strike", title: "Strikethrough", activeTitle: "Remove strikethrough", icon: "strikethrough" },
 	extract: { label: "Extract", title: "Extract to note", icon: "file-output" },
 	define: { label: "Define", title: "Look up on Wikipedia and Wiktionary", icon: "book-open" },
+	shorten: { label: "Shorten", title: "Shorten the paragraph or selection", icon: "scissors" },
 };
 
 export const LINK_TOOLS: Record<LinkToolId, ActionInfo> = {

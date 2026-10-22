@@ -11,6 +11,13 @@ What has been tested so far, and what hasn't.
 - The callout icon and an untitled callout's default title ("Note") don't open the wheel; that callout's text does.
 - The tint and the preset classes are removed when the wheel closes, and editor hovering outside callouts still works (wheel and toast check re-run).
 
+**Shorten**, a new wheel action. Checked the same way, with Shorten placed in a slot, over the 3-sentence PDF++ paragraph:
+- From a word inside the rendered callout, the dialog opens with the paragraph shortened to about half (73 → 44 words, two whole sentences with their highlights), and "About a third" shortened it further (24 words).
+- **Insert below** added the short version as a new paragraph inside the same nested quote (`> >`), keeping the original. **Replace**, after editing the text by hand, replaced the paragraph with the edited text.
+- A short line ("Intro line before the callout.") dims Shorten, with "Too short to shorten" in the center.
+- **Local AI:** against a stand-in server answering like Ollama's `/api/generate`, the request carried the model, the prompt, and the paragraph, and the reply's reasoning text and chatty preface were stripped. A model Ollama doesn't have, and an address where nothing listens, both fall back to the built-in version with a clear message.
+- Not yet tried: the local AI with a real model (the only one installed here was a 27B model, too large to load just for this), languages other than English, and very long selections.
+
 ## Release 1.0.2
 
 Demo page only; the plugin's code is the same as in 1.0.1. The demo's stand-ins for Obsidian's DOM helpers moved to plain JavaScript (`demo/obsidian-dom.js`), which clears the last six review warnings. The demo renders the same markup as before (gallery, note, wheel, toast, and dialogs), and the review's lint rules report nothing for it.
@@ -30,7 +37,7 @@ Clears the code warnings from the Community directory review. Checked in Obsidia
 - The interactive demo page (`docs/`) works in Chromium at desktop and phone widths, in dark and light themes, with no console errors.
 - The code was checked against Obsidian's plugin guidelines: it uses the Vault API, `normalizePath()` for new note paths, and stylesheet classes instead of hard-coded styles, except for positions calculated at runtime.
 
-## Automated (135 unit tests, all passing)
+## Automated (151 unit tests, all passing)
 
 Run them with `npm test`.
 
@@ -44,6 +51,7 @@ Run them with `npm test`.
 - **Word detection:** joiners, punctuation, markdown markers, accented letters, Devanagari, digits, astral characters.
 - **Selection priority:** hovering inside versus outside a selection, empty selections, trimming, multiline blocking.
 - **Rendered callouts:** every rendered piece of a PDF++ callout is found in its markdown, including highlighted and linked text and repeated title links; escaped text and whitespace are skipped; the quote block around a position; the callout marker's end.
+- **Shorten:** sentence splitting (abbreviations, initials, links, code, and math don't split); about half / a third as whole sentences in their original order, with formatting and links kept; wordy phrasing, opening linking words, and long asides trimmed, but not inside links or code, nor references in parentheses; the paragraph around a word, across soft line breaks and inside nested quotes; list items; headings, code, and short lines refused; selections over quote lines; Shorten settings repaired when invalid.
 - **Blocking:** inline code, fenced code (backticks, tildes, longer fences, in quotes and lists), `$$` math, frontmatter, wikilinks, embeds, markdown, reference, and auto links, bare URLs, tags versus headings and `#2024`.
 - **Bold/highlight toggles:** wrap, unwrap (exact, markers selected, inside a span), bold-italic, `__bold__`, partial-overlap refusal, merging contained spans, markers in code or links ignored, round trips, highlight independent of bold.
 - **Italic toggles:** `*x*` and `_x_`; underscores inside words ignored; bold markers not mistaken for italics; bold-italic split both ways; italic around bold and bold around italic; list bullets and `2 * 3` ignored; round trips.
