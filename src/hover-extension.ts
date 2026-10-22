@@ -5,6 +5,8 @@ import { Notice, editorInfoField } from "obsidian";
 import type WordHoverActionsPlugin from "./main";
 import { type Box, HoverMenu, type Point, type WheelSpec, inBox } from "./menu";
 import { reasonForNodeName } from "./text/context";
+import { calloutMarkerEnd, locatePieces, quoteBlockAt, splitLines } from "./text/rendered";
+import type { Span } from "./text/spans";
 import { type HoverTarget, resolveTarget } from "./text/target";
 import { type WheelContext, buildWheel, runWheelAction } from "./wheel-actions";
 
@@ -21,6 +23,10 @@ const REGION_SLACK_PX = 6;
 /** A Shift press this soon after typing is treated as typing a capital, not as a hover. */
 const TYPING_GRACE_MS = 1000;
 const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "AltGraph", "Meta", "CapsLock", "Fn", "OS"]);
+/** Parts of a rendered callout that aren't its own text: icons, buttons, embedded notes, math. */
+const CALLOUT_SKIP = ".callout-icon, .callout-fold, .edit-block-button, .internal-embed, mjx-container";
+/** Name of the CSS highlight that tints a target inside a rendered callout. */
+const RENDERED_MARK = "wha-hover-target";
 
 interface TargetMark {
 	from: number;
@@ -66,6 +72,24 @@ function syntaxReason(state: EditorState, from: number, to: number): string | nu
 	return reason;
 }
 
+/** A line of one text node in a callout that Live Preview shows rendered, and where it sits in the document. */
+interface RenderedPiece {
+	callout: HTMLElement;
+	node: Node;
+	/** Where the line starts in the text node. */
+	nodeOffset: number;
+	docFrom: number;
+	length: number;
+}
+
+/** The character under the pointer: its document index and its box on screen. */
+interface Hit {
+	index: number;
+	rect: Box;
+	/** Set when the character is in a rendered callout rather than in editable text. */
+	rendered: RenderedPiece | null;
+}
+
 interface OpenMenu {
 	target: HoverTarget;
 	/** The document the target was computed against; any edit makes the target stale. */
@@ -76,6 +100,12 @@ interface OpenMenu {
 }
 
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
+
+/** A range's box on screen, and whether it sits on a single visual line. */
+function rangeGeometry(range: Range): { box: Box; singleLine: boolean } {
+	const r = range.getBoundingClientRect();
+	return { box: { left: r.left, right: r.right, top: r.top, bottom: r.bottom }, singleLine: range.getClientRects().length <= 1 };
+}
 
 /** The range the wheel's actions apply to: the whole link for link tools, otherwise the target itself. */
 function actedOn(target: HoverTarget): { from: number; to: number } {
@@ -104,6 +134,7 @@ class HoverController implements PluginValue {
 	private leaveTimer: number | null = null;
 	private lastTypingAt = -Infinity;
 	private current: OpenMenu | null = null;
+	private clearRenderedMark: (() => void) | null = null;
 	private destroyed = false;
 
 	constructor(
@@ -278,7 +309,7 @@ class HoverController implements PluginValue {
 			target,
 			doc: state.doc,
 		};
-		this.show(context, buildWheel(context), hit.rect);
+		this.show(context, buildWheel(context), hit.rect, hit.rendered);
 	};
 
 	// ---- geometry -------------------------------------------------------------------------
@@ -286,11 +317,16 @@ class HoverController implements PluginValue {
 	/**
 	 * The document index of the character actually under the pointer, or null over whitespace past
 	 * the end of a line, padding, widgets (embeds, rendered tables, math), or nested editors.
+	 * Callouts that Live Preview shows rendered count as text (see renderedHit).
 	 */
-	private hitTest(p: Point): { index: number; rect: Box } | null {
+	private hitTest(p: Point): Hit | null {
 		const el = this.doc.elementFromPoint(p.x, p.y);
 		if (!el || !this.view.contentDOM.contains(el)) return null;
-		if (el.closest("[contenteditable]") !== this.view.contentDOM) return null;
+		const editable = el.closest("[contenteditable]");
+		if (editable !== this.view.contentDOM) {
+			const callout = el.closest<HTMLElement>(".cm-embed-block.cm-callout");
+			return callout && editable?.getAttribute("contenteditable") === "false" ? this.renderedHit(callout, p) : null;
+		}
 		const pos = this.view.posAtCoords(p);
 		if (pos === null) return null;
 		const line = this.view.state.doc.lineAt(pos);
@@ -305,9 +341,105 @@ class HoverController implements PluginValue {
 				top: Math.min(start.top, end.top),
 				bottom: Math.max(start.bottom, end.bottom),
 			};
-			if (rect.right - rect.left >= 0.5 && inBox(rect, p)) return { index, rect };
+			if (rect.right - rect.left >= 0.5 && inBox(rect, p)) return { index, rect, rendered: null };
 		}
 		return null;
+	}
+
+	/**
+	 * The character under the pointer in a callout that Live Preview shows rendered. Its text isn't
+	 * editable, so the hovered piece of text is found in the callout's markdown (see locatePieces),
+	 * and the wheel then works on the markdown as it would in Source mode.
+	 */
+	private renderedHit(callout: HTMLElement, p: Point): Hit | null {
+		if (typeof this.doc.caretPositionFromPoint !== "function") return null;
+		const caret = this.doc.caretPositionFromPoint(p.x, p.y);
+		const node = caret?.offsetNode;
+		if (!caret || !node || node.nodeType !== Node.TEXT_NODE || !callout.contains(node)) return null;
+		const text = node.textContent ?? "";
+		let offset = -1;
+		let rect: Box | null = null;
+		for (const i of [caret.offset, caret.offset - 1]) {
+			if (i < 0 || i >= text.length) continue;
+			const box = this.rangeBox(node, i, i + 1);
+			if (box.right - box.left >= 0.5 && inBox(box, p)) {
+				offset = i;
+				rect = box;
+				break;
+			}
+		}
+		if (!rect) return null;
+
+		const doc = this.view.state.doc;
+		const block = quoteBlockAt(doc, this.view.posAtDOM(callout));
+		if (!block) return null;
+		const markdown = doc.sliceString(block.from, block.to);
+		const markerEnd = calloutMarkerEnd(markdown);
+		// Without a title of its own, a callout shows its type ("Note") as the title; that text isn't in the markdown.
+		const firstLineEnd = markdown.indexOf("\n");
+		const titled = /\S/.test(markdown.slice(markerEnd, firstLineEnd < 0 ? undefined : firstLineEnd));
+		const defaultTitle = titled ? null : callout.querySelector(".callout-title");
+		const skipped = (n: Node) => Boolean(n.parentElement?.closest(CALLOUT_SKIP)) || Boolean(defaultTitle?.contains(n));
+		if (skipped(node)) return null;
+
+		// The callout's text, line by line in reading order, up to the hovered line.
+		const pieces: Array<{ node: Node; offset: number; text: string }> = [];
+		let hovered = -1;
+		const walker = this.doc.createTreeWalker(callout, NodeFilter.SHOW_TEXT);
+		for (let current = walker.nextNode(); current && hovered < 0; current = walker.nextNode()) {
+			if (skipped(current)) continue;
+			for (const line of splitLines(current.textContent ?? "")) {
+				if (current === node && offset >= line.offset && offset < line.offset + line.text.length) hovered = pieces.length;
+				pieces.push({ node: current, offset: line.offset, text: line.text });
+				if (hovered >= 0) break;
+			}
+		}
+		if (hovered < 0) return null;
+		const start = locatePieces(markdown, pieces.map((piece) => piece.text))[hovered];
+		if (start === null) return null;
+		const piece = pieces[hovered];
+		const index = block.from + start + offset - piece.offset;
+		// The `[!type]` marker shows as the callout's icon, not as text to act on.
+		if (index < block.from + markerEnd) return null;
+		return {
+			index,
+			rect,
+			rendered: { callout, node, nodeOffset: piece.offset, docFrom: block.from + start, length: piece.text.length },
+		};
+	}
+
+	private rangeBox(node: Node, from: number, to: number): Box {
+		const range = this.doc.createRange();
+		range.setStart(node, from);
+		range.setEnd(node, to);
+		return rangeGeometry(range).box;
+	}
+
+	/** The rendered text of a target inside a callout: part of the hovered line, or the whole link for link tools. */
+	private renderedRange(piece: RenderedPiece, span: Span): Range | null {
+		const range = this.doc.createRange();
+		if (span.from >= piece.docFrom && span.to <= piece.docFrom + piece.length) {
+			range.setStart(piece.node, piece.nodeOffset + span.from - piece.docFrom);
+			range.setEnd(piece.node, piece.nodeOffset + span.to - piece.docFrom);
+			return range;
+		}
+		const link = piece.node.parentElement?.closest("a");
+		if (!link || !piece.callout.contains(link)) return null;
+		range.selectNodeContents(link);
+		return range;
+	}
+
+	/** Tints a target inside a rendered callout, which editor decorations can't reach. */
+	private markRendered(range: Range, callout: HTMLElement, classes: string[]): void {
+		const win = this.doc.defaultView;
+		if (!win?.CSS?.highlights || typeof win.Highlight !== "function") return;
+		// The highlight takes its colors from the preset classes on an element around the text.
+		callout.classList.add(...classes);
+		win.CSS.highlights.set(RENDERED_MARK, new win.Highlight(range));
+		this.clearRenderedMark = () => {
+			win.CSS.highlights.delete(RENDERED_MARK);
+			callout.classList.remove(...classes);
+		};
 	}
 
 	/** The target's on-screen box, and whether it sits on a single visual line. */
@@ -338,9 +470,11 @@ class HoverController implements PluginValue {
 	// ---- menu lifecycle -------------------------------------------------------------------
 
 	/** Opens the wheel beside the target, or beside the hovered character when the target wraps. */
-	private show(context: WheelContext, spec: WheelSpec, hovered: Box): void {
+	private show(context: WheelContext, spec: WheelSpec, hovered: Box, rendered: RenderedPiece | null): void {
 		const { target } = context;
 		this.current?.menu.destroy();
+		this.clearRenderedMark?.();
+		this.clearRenderedMark = null;
 		this.clearLeaveTimer();
 		const menu = new HoverMenu(
 			this.doc,
@@ -350,9 +484,15 @@ class HoverController implements PluginValue {
 		);
 		// Link tools act on the whole link, so anchor to (and mark) all of it, not just the hovered word.
 		const span = actedOn(target);
-		const geometry = this.targetBox(span);
+		// Inside a rendered callout the target's markdown is hidden, so its rendered text stands in.
+		const range = rendered ? this.renderedRange(rendered, span) : null;
+		const geometry = rendered ? range && rangeGeometry(range) : this.targetBox(span);
 		menu.place(geometry?.singleLine ? geometry.box : hovered);
 		this.current = { target, doc: context.doc, menu, box: geometry?.box ?? null, context };
+		if (rendered) {
+			if (range) this.markRendered(range, rendered.callout, spec.themeClasses);
+			return;
+		}
 		this.view.dispatch({
 			effects: setTargetMark.of({
 				from: span.from,
@@ -365,6 +505,8 @@ class HoverController implements PluginValue {
 
 	private dismiss(clearMark = true): void {
 		this.clearLeaveTimer();
+		this.clearRenderedMark?.();
+		this.clearRenderedMark = null;
 		if (!this.current) return;
 		this.current.menu.destroy();
 		this.current = null;

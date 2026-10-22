@@ -2,6 +2,15 @@
 
 What has been tested so far, and what hasn't.
 
+## Not yet released
+
+**Rendered callouts in Live Preview** (e.g. PDF++ highlight callouts) now open the wheel. Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness, on `Callout sample.md` (a PDF++ callout with nested quotes, highlights, bold, and links, and an untitled callout):
+- A plain word ("Earth"): the wheel opens beside it, the word is tinted, and Highlight wrote `==Earth==` into the markdown.
+- An already highlighted word: Highlight shows as applied, and Bold produced `==**microorganisms**==`.
+- Bold text shows Bold as applied. A link in the text, the callout's title link, and a repeated title link further down all open the link tools for their own link.
+- The callout icon and an untitled callout's default title ("Note") don't open the wheel; that callout's text does.
+- The tint and the preset classes are removed when the wheel closes, and editor hovering outside callouts still works (wheel and toast check re-run).
+
 ## Release 1.0.2
 
 Demo page only; the plugin's code is the same as in 1.0.1. The demo's stand-ins for Obsidian's DOM helpers moved to plain JavaScript (`demo/obsidian-dom.js`), which clears the last six review warnings. The demo renders the same markup as before (gallery, note, wheel, toast, and dialogs), and the review's lint rules report nothing for it.
@@ -21,7 +30,7 @@ Clears the code warnings from the Community directory review. Checked in Obsidia
 - The interactive demo page (`docs/`) works in Chromium at desktop and phone widths, in dark and light themes, with no console errors.
 - The code was checked against Obsidian's plugin guidelines: it uses the Vault API, `normalizePath()` for new note paths, and stylesheet classes instead of hard-coded styles, except for positions calculated at runtime.
 
-## Automated (124 unit tests, all passing)
+## Automated (135 unit tests, all passing)
 
 Run them with `npm test`.
 
@@ -34,6 +43,7 @@ Run them with `npm test`.
 - **Settings:** defaults, no shared arrays, repairing invalid saved values (including names like `toString` or `constructor`), color presets, slot resolution (padding, deleted wrappers, unknown actions).
 - **Word detection:** joiners, punctuation, markdown markers, accented letters, Devanagari, digits, astral characters.
 - **Selection priority:** hovering inside versus outside a selection, empty selections, trimming, multiline blocking.
+- **Rendered callouts:** every rendered piece of a PDF++ callout is found in its markdown, including highlighted and linked text and repeated title links; escaped text and whitespace are skipped; the quote block around a position; the callout marker's end.
 - **Blocking:** inline code, fenced code (backticks, tildes, longer fences, in quotes and lists), `$$` math, frontmatter, wikilinks, embeds, markdown, reference, and auto links, bare URLs, tags versus headings and `#2024`.
 - **Bold/highlight toggles:** wrap, unwrap (exact, markers selected, inside a span), bold-italic, `__bold__`, partial-overlap refusal, merging contained spans, markers in code or links ignored, round trips, highlight independent of bold.
 - **Italic toggles:** `*x*` and `_x_`; underscores inside words ignored; bold markers not mistaken for italics; bold-italic split both ways; italic around bold and bold around italic; list bullets and `2 * 3` ignored; round trips.
@@ -119,7 +129,8 @@ With the earlier bar menu. These parts of the code didn't change; only the menu'
   - Selection targets.
   - The wheel opening on the left when a word is near the right edge of a narrow pane.
 - **One unexplained miss:** once, pressing Shift over a word did not open the menu, and the identical sequence worked on every later try. Watch for it in daily use.
-- **Live Preview rendered blocks:** tables (edit them in Source mode or with the cursor inside), callouts, embeds, and math widgets don't open the menu. This is by design, to avoid acting on the wrong text, but check it suits you.
+- **Live Preview rendered blocks:** tables (edit them in Source mode or with the cursor inside), embeds, and math widgets don't open the menu. This is by design, to avoid acting on the wrong text, but check it suits you. Rendered callouts do open it.
+- **Rendered callouts, not yet tried:** nested callouts, callouts with embeds or math inside, and folded callouts.
 - Not tried:
   - Popout windows and split panes side by side.
   - Vim mode.

@@ -92,7 +92,8 @@ Requires Obsidian 1.14.4 or later, on desktop (it relies on a mouse and the Shif
 
 ## Known limitations
 
-- Rendered blocks in Live Preview (tables, callouts, embeds, math) don't open the wheel, to avoid acting on the wrong text. In Source mode, or with the cursor inside them, they work.
+- Rendered tables, embeds, and math in Live Preview don't open the wheel, to avoid acting on the wrong text. In Source mode, or with the cursor inside them, they work.
+- Callouts work while Live Preview shows them rendered, including PDF++ highlight callouts: the wheel finds the hovered word in the callout's markdown. Text that isn't in the markdown as-is (an escaped character, for example) doesn't open the wheel.
 - Reading view isn't supported; the wheel works in the editor.
 - Languages written without spaces (Chinese, Japanese) are treated as one long word. Select the phrase instead.
 
