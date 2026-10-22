@@ -2,7 +2,7 @@
 
 What has been tested so far, and what hasn't.
 
-## Not yet released
+## Release 1.0.3
 
 **Rendered callouts in Live Preview** (e.g. PDF++ highlight callouts) now open the wheel. Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness, on `Callout sample.md` (a PDF++ callout with nested quotes, highlights, bold, and links, and an untitled callout):
 - A plain word ("Earth"): the wheel opens beside it, the word is tinted, and Highlight wrote `==Earth==` into the markdown.
