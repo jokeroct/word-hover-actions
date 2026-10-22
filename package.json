@@ -1,6 +1,6 @@
 {
   "name": "word-hover-actions",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "Hold Shift over a word in Obsidian to open an action wheel: link or create notes, format text, extract passages, and look up definitions.",
   "author": "MON.D.SAMA",

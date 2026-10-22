@@ -2,7 +2,7 @@
 
 What has been tested so far, and what hasn't.
 
-## Not yet released
+## Release 1.0.4
 
 **The wheel opens faster**, with an **Open delay** setting (default 40 ms, range 0–500 ms), and a shorter opening animation. Timed in Obsidian 1.14.4 (Windows) with the dev-vault harness:
 - Holding Shift and moving onto a word: the wheel was in the page after 46–55 ms (about 120 ms before).
