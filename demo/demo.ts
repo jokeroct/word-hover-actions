@@ -6,8 +6,8 @@ import { type Box, HoverMenu, type Point, type WheelSegment, type WheelSpec, inB
 import { DEFAULT_SETTINGS, type SlotCount } from "../src/settings-model";
 import { type ColorPreset, PRESETS, PRESET_IDS, isPreset, themeClasses } from "../src/theme";
 
-const HOVER_DELAY_MS = 120;
-const KEY_HOVER_DELAY_MS = 150;
+const HOVER_DELAY_MS = 40;
+const KEY_HOVER_DELAY_MS = 120;
 const LEAVE_GRACE_MS = 300;
 const REGION_SLACK_PX = 6;
 

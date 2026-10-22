@@ -6,6 +6,7 @@ import { PRESETS, PRESET_IDS, themeClasses } from "./theme";
 import type WordHoverActionsPlugin from "./main";
 import {
 	DEFAULT_SETTINGS,
+	OPEN_DELAY_RANGE,
 	SLOT_COUNTS,
 	type SlotCount,
 	type WordHoverSettings,
@@ -152,6 +153,16 @@ export class WordHoverSettingTab extends PluginSettingTab {
 				type: "group",
 				heading: "Wheel",
 				items: [
+					{
+						name: "Open delay",
+						desc: "How long to rest on a word, with Shift held, before the wheel opens. Lower is faster; raise it if the wheel opens when you don't want it.",
+						control: {
+							type: "slider",
+							key: "openDelay",
+							...OPEN_DELAY_RANGE,
+							displayFormat: (value) => `${value} ms`,
+						},
+					},
 					{
 						name: "Segments",
 						desc: "How many actions the wheel holds. Each size keeps its own layout.",

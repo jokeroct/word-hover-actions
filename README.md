@@ -64,7 +64,7 @@ The wheel, the dialogs, and the toast share a frosted-glass look in light and da
 
 **Settings → Word Hover Actions**
 - **Appearance:** color preset, with a live preview.
-- **Wheel:** 4, 6, or 8 segments, and the action for each slot.
+- **Wheel:** how quickly it opens (default 40 ms after the pointer settles on a word), 4, 6, or 8 segments, and the action for each slot.
 - **Custom wrappers:** name, icon (any [Lucide](https://lucide.dev/icons) name), and the text to put before and after.
 - **After linking:**
   - Offer to link other mentions.

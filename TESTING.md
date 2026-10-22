@@ -2,6 +2,14 @@
 
 What has been tested so far, and what hasn't.
 
+## Not yet released
+
+**The wheel opens faster**, with an **Open delay** setting (default 40 ms, range 0–500 ms), and a shorter opening animation. Timed in Obsidian 1.14.4 (Windows) with the dev-vault harness:
+- Holding Shift and moving onto a word: the wheel was in the page after 46–55 ms (about 120 ms before).
+- Pressing Shift while already resting on a word: 127 ms. That path keeps a 120 ms minimum, so typing a capital letter doesn't flash the wheel.
+- Open delay 300 ms: 311 ms. Open delay 0: 8 ms. The setting appears in the Wheel group as a slider showing "40 ms".
+- The wheel and toast check still passes.
+
 ## Release 1.0.3
 
 **Rendered callouts in Live Preview** (e.g. PDF++ highlight callouts) now open the wheel. Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness, on `Callout sample.md` (a PDF++ callout with nested quotes, highlights, bold, and links, and an untitled callout):
@@ -37,7 +45,7 @@ Clears the code warnings from the Community directory review. Checked in Obsidia
 - The interactive demo page (`docs/`) works in Chromium at desktop and phone widths, in dark and light themes, with no console errors.
 - The code was checked against Obsidian's plugin guidelines: it uses the Vault API, `normalizePath()` for new note paths, and stylesheet classes instead of hard-coded styles, except for positions calculated at runtime.
 
-## Automated (151 unit tests, all passing)
+## Automated (152 unit tests, all passing)
 
 Run them with `npm test`.
 

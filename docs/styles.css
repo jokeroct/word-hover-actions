@@ -103,7 +103,7 @@
 	color: var(--wha-text);
 	font-size: var(--font-ui-smaller);
 	user-select: none;
-	animation: wha-wheel-open 150ms cubic-bezier(0.2, 0.9, 0.25, 1.15);
+	animation: wha-wheel-open 110ms cubic-bezier(0.2, 0.9, 0.25, 1.15);
 }
 
 /* Sizes match GEOMETRY in src/menu.ts. */
@@ -155,7 +155,7 @@
 	inset: -1px;
 	overflow: visible;
 	transform-origin: 50% 50%;
-	animation: wha-wheel-spin 220ms var(--wha-ease);
+	animation: wha-wheel-spin 160ms var(--wha-ease);
 }
 
 @keyframes wha-wheel-spin {
@@ -185,8 +185,8 @@
 	transform-box: view-box;
 	transform-origin: 50% 50%;
 	transition: transform 140ms var(--wha-ease);
-	animation: wha-seg-in 140ms ease-out backwards;
-	animation-delay: calc(var(--i) * 12ms);
+	animation: wha-seg-in 100ms ease-out backwards;
+	animation-delay: calc(var(--i) * 6ms);
 }
 
 @keyframes wha-seg-in {
@@ -270,8 +270,8 @@
 	transition:
 		color 140ms ease,
 		transform 140ms var(--wha-ease);
-	animation: wha-fade-in 160ms ease-out backwards;
-	animation-delay: calc(var(--i) * 12ms + 40ms);
+	animation: wha-fade-in 100ms ease-out backwards;
+	animation-delay: calc(var(--i) * 6ms + 20ms);
 }
 
 @keyframes wha-fade-in {

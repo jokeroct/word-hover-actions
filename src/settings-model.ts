@@ -15,6 +15,8 @@ export interface CustomWrapper {
 }
 
 export interface WordHoverSettings {
+	/** How long the pointer rests on a word, with Shift held, before the wheel opens (ms). */
+	openDelay: number;
 	slotCount: SlotCount;
 	/** Actions clockwise from the top, kept separately for each wheel size. */
 	slots: Record<SlotCount, SlotAction[]>;
@@ -44,7 +46,11 @@ export function cleanUrl(value: string): string | null {
 	return /^https?:\/\/[^\s/]+/i.test(url) ? url : null;
 }
 
+/** The range offered for the open delay, in milliseconds. */
+export const OPEN_DELAY_RANGE = { min: 0, max: 500, step: 10 };
+
 export const DEFAULT_SETTINGS: WordHoverSettings = {
+	openDelay: 40,
 	slotCount: 6,
 	slots: {
 		4: ["link", "bold", "highlight", "italic"],
@@ -90,7 +96,12 @@ export function loadSettings(saved: unknown): WordHoverSettings {
 					typeof w === "object" && w !== null && typeof w.id === "string" && typeof w.before === "string" && typeof w.after === "string",
 			)
 		: DEFAULT_SETTINGS.customWrappers.map((w) => ({ ...w }));
+	const delay = data.openDelay;
 	return {
+		openDelay:
+			typeof delay === "number" && Number.isFinite(delay)
+				? Math.min(OPEN_DELAY_RANGE.max, Math.max(OPEN_DELAY_RANGE.min, Math.round(delay)))
+				: DEFAULT_SETTINGS.openDelay,
 		slotCount,
 		slots,
 		customWrappers,

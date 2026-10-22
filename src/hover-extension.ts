@@ -10,10 +10,11 @@ import type { Span } from "./text/spans";
 import { type HoverTarget, resolveTarget } from "./text/target";
 import { type WheelContext, buildWheel, runWheelAction } from "./wheel-actions";
 
-/** Pause before the menu opens once the pointer settles on a word with Shift held. */
-const HOVER_DELAY_MS = 120;
-/** Delay after pressing Shift over a word; a little longer so a capital letter typed next cancels it first. */
-const KEY_HOVER_DELAY_MS = 150;
+/**
+ * Pressing Shift while resting on a word waits at least this long, whatever the open delay
+ * setting, so a capital letter typed next cancels it before the wheel flashes up.
+ */
+const KEY_HOVER_MIN_DELAY_MS = 120;
 /** How long the pointer may be outside the word and menu (e.g. crossing the gap) before the menu closes. */
 const LEAVE_GRACE_MS = 300;
 /** Pointer jitter that doesn't restart the pause. */
@@ -258,7 +259,9 @@ class HoverController implements PluginValue {
 		if (!fromKey && settling && distance(this.pointer, this.hoverOrigin!) < MOVE_TOLERANCE_PX) return;
 		this.cancelHover();
 		this.hoverOrigin = { ...this.pointer };
-		this.hoverTimer = this.win.setTimeout(this.onHoverTimer, fromKey ? KEY_HOVER_DELAY_MS : HOVER_DELAY_MS);
+		// The pause once the pointer settles on a word with Shift held comes from settings.
+		const delay = this.plugin.settings.openDelay;
+		this.hoverTimer = this.win.setTimeout(this.onHoverTimer, fromKey ? Math.max(delay, KEY_HOVER_MIN_DELAY_MS) : delay);
 	}
 
 	private cancelHover(): void {

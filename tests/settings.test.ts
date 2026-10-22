@@ -25,6 +25,14 @@ describe("loadSettings", () => {
 		});
 	});
 
+	it("keeps the open delay within its range", () => {
+		expect(loadSettings(null).openDelay).toBe(40);
+		expect(loadSettings({ openDelay: 150 }).openDelay).toBe(150);
+		expect(loadSettings({ openDelay: 9999 }).openDelay).toBe(500);
+		expect(loadSettings({ openDelay: -5 }).openDelay).toBe(0);
+		expect(loadSettings({ openDelay: "fast" }).openDelay).toBe(40);
+	});
+
 	it("keeps valid Shorten settings and repairs invalid ones", () => {
 		expect(
 			loadSettings({ shortenLength: "third", shortenEngine: "ollama", ollamaUrl: "http://127.0.0.1:11434/", ollamaModel: " qwen2.5 " }),
