@@ -171,6 +171,23 @@ export function blockReason(doc: DocLike, from: number, to: number): string | nu
 }
 
 /**
+ * Why a range over several lines can't be formatted: a line in properties, a code block, or a
+ * math block. Links, tags, and inline code inside a line don't stop it, since formatting can wrap them.
+ */
+export function linesBlockReason(doc: DocLike, from: number, to: number): string | null {
+	const fmEnd = frontmatterEnd(doc);
+	const first = doc.lineAt(from).number;
+	const last = doc.lineAt(to).number;
+	if (fmEnd > 0 && first <= fmEnd) return REASON.frontmatter;
+	const kinds = lineKinds(doc);
+	for (let n = first; n <= last; n++) {
+		if (kinds[n] === "code") return REASON.codeBlock;
+		if (kinds[n] === "math") return REASON.math;
+	}
+	return null;
+}
+
+/**
  * Maps an Obsidian editor syntax-node name (e.g. "formatting-code_inline-code") to a reason,
  * catching cases the text scan misses, such as inline math or indented code.
  */

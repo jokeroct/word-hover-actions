@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type FormatKind, mapPos, planFormat, planWrap } from "../src/text/format";
+import { type FormatKind, mapPos, planFormat, planFormatLines, planWrap } from "../src/text/format";
 import { applyChanges, spanOf, toDoc } from "./helpers";
 
 function toggle(source: string, needle: string, kind: FormatKind = "bold", nth = 0) {
@@ -194,5 +194,72 @@ describe("planWrap (custom wrappers)", () => {
 	it("works at the very start and end of a line", () => {
 		expect(wrap("note", "note", "%%", "%%")).toMatchObject({ result: "%%note%%" });
 		expect(wrap("%%note%%", "note", "%%", "%%")).toMatchObject({ active: true, result: "note" });
+	});
+});
+
+describe("planFormatLines (selections over several lines)", () => {
+	function toggleLines(source: string, from: number, to: number, kind: FormatKind = "bold") {
+		const doc = toDoc(source);
+		const plan = planFormatLines(doc, { from, to }, (span) => planFormat(doc, span, kind));
+		if (!plan.ok) return { ok: false as const, reason: plan.reason };
+		const result = applyChanges(source, plan.changes);
+		return { ok: true as const, active: plan.active, result, selected: result.slice(plan.selection.from, plan.selection.to) };
+	}
+	const all = (source: string) => [0, source.length] as const;
+
+	it("formats each selected line on its own, skipping blank lines", () => {
+		const s = "A. Monosaccharides (One Sugar)\n\nB. Disaccharides (Two Sugars)\n\nC. Polysaccharides (Many Sugars)";
+		expect(toggleLines(s, ...all(s))).toMatchObject({
+			ok: true,
+			active: false,
+			result: "**A. Monosaccharides (One Sugar)**\n\n**B. Disaccharides (Two Sugars)**\n\n**C. Polysaccharides (Many Sugars)**",
+		});
+	});
+
+	it("removes the formatting when every line has it, and adds it to the others when only some do", () => {
+		const bold = "**one**\n**two**";
+		expect(toggleLines(bold, ...all(bold))).toMatchObject({ active: true, result: "one\ntwo" });
+		const mixed = "**one**\ntwo";
+		expect(toggleLines(mixed, ...all(mixed))).toMatchObject({ active: false, result: "**one**\n**two**" });
+	});
+
+	it("starts after list, task, heading, quote, and callout markers", () => {
+		const s = "- item one\n- [ ] task two\n## Heading three\n> > quoted four\n> [!note] Title five";
+		expect(toggleLines(s, ...all(s), "highlight")).toMatchObject({
+			result: "- ==item one==\n- [ ] ==task two==\n## ==Heading three==\n> > ==quoted four==\n> [!note] ==Title five==",
+		});
+	});
+
+	it("covers only the selected part of the first and last lines", () => {
+		const s = "keep this start\nmiddle line\nthe end stays";
+		expect(toggleLines(s, s.indexOf("start"), s.indexOf(" stays"))).toMatchObject({
+			result: "keep this **start**\n**middle line**\n**the end** stays",
+			selected: "**start**\n**middle line**\n**the end**",
+		});
+	});
+
+	it("leaves a selection that toggles straight back", () => {
+		const s = "A. One\n\nB. Two\n\nC. Three";
+		const first = toggleLines(s, 0, s.length);
+		if (!first.ok) throw new Error(first.reason);
+		const from = first.result.indexOf(first.selected);
+		const second = toggleLines(first.result, from, from + first.selected.length);
+		expect(second).toMatchObject({ ok: true, active: true, result: s, selected: s });
+	});
+
+	it("leaves table rows and rules alone", () => {
+		const s = "text\n| a | b |\n---\nmore";
+		expect(toggleLines(s, ...all(s), "italic")).toMatchObject({ result: "*text*\n| a | b |\n---\n*more*" });
+	});
+
+	it("refuses when a line can't take the formatting, such as one starting halfway into bold text", () => {
+		const s = "one **two** three\nnext line";
+		expect(toggleLines(s, s.indexOf("wo"), s.length)).toEqual({ ok: false, reason: "Overlaps existing bold" });
+	});
+
+	it("works for custom wrappers too", () => {
+		const doc = toDoc("one\ntwo");
+		const plan = planFormatLines(doc, { from: 0, to: 7 }, (span) => planWrap(doc, span, "%%", "%%"));
+		expect(plan.ok && applyChanges("one\ntwo", plan.changes)).toBe("%%one%%\n%%two%%");
 	});
 });

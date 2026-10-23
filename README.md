@@ -50,8 +50,9 @@ The wheel, the dialogs, and the toast share a frosted-glass look in light and da
 ## How it works
 
 - **What an action applies to.** If you hover inside a selection, the whole selection; otherwise the word under the pointer. `well-known`, `don't`, and `snake_case` count as one word.
+- **Selections over several lines** are formatted line by line, since Markdown formatting can't cross a line break: each line gets its own `**…**`, after any bullet, heading mark, or quote marker. Clicking again removes it from all of them. Link and Define need a single line.
 - **Hovering never changes your note.** Only clicking a segment does, and every edit can be undone with Ctrl/Cmd+Z.
-- **When an action is unavailable**, its segment is dimmed and the center of the wheel says why: inside code, math, properties, a tag, or a selection that spans several lines.
+- **When an action is unavailable**, its segment is dimmed and the center of the wheel says why: inside code, math, properties, or a tag, or Link or Define on a selection that spans several lines.
 - **The note picker:**
   - Matches names and aliases, and shows folder paths when two notes share a name.
   - Creates new notes in your *Default location for new notes*.

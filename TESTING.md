@@ -2,6 +2,14 @@
 
 What has been tested so far, and what hasn't.
 
+## Not yet released
+
+**Formatting a selection over several lines**, line by line (it used to be refused). Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness, on `Multiline sample.md`:
+- Selecting three lines separated by blank lines ("A. Monosaccharides…", "B. …", "C. …"): the wheel shows "3 lines", with Bold, Italic, Highlight, and Extract available and Link and Define dimmed ("Selection spans several lines").
+- Bold gave `**A. Monosaccharides (One Sugar)**`, `**B. …**`, `**C. …**`, and the selection kept all three. On it, Bold showed as applied, and clicking it again restored the original text exactly.
+- Highlight on two list items went after the bullets: `- ==list item one==`.
+- The wheel and toast and rendered-callout checks still pass.
+
 ## Release 1.0.4
 
 **The wheel opens faster**, with an **Open delay** setting (default 40 ms, range 0–500 ms), and a shorter opening animation. Timed in Obsidian 1.14.4 (Windows) with the dev-vault harness:
@@ -45,7 +53,7 @@ Clears the code warnings from the Community directory review. Checked in Obsidia
 - The interactive demo page (`docs/`) works in Chromium at desktop and phone widths, in dark and light themes, with no console errors.
 - The code was checked against Obsidian's plugin guidelines: it uses the Vault API, `normalizePath()` for new note paths, and stylesheet classes instead of hard-coded styles, except for positions calculated at runtime.
 
-## Automated (152 unit tests, all passing)
+## Automated (161 unit tests, all passing)
 
 Run them with `npm test`.
 
@@ -57,7 +65,8 @@ Run them with `npm test`.
 - **Look-ups:** Wikipedia summaries (standard, disambiguation, errors), Wiktionary definitions (language filter, HTML stripped, caps), note templates.
 - **Settings:** defaults, no shared arrays, repairing invalid saved values (including names like `toString` or `constructor`), color presets, slot resolution (padding, deleted wrappers, unknown actions).
 - **Word detection:** joiners, punctuation, markdown markers, accented letters, Devanagari, digits, astral characters.
-- **Selection priority:** hovering inside versus outside a selection, empty selections, trimming, multiline blocking.
+- **Selection priority:** hovering inside versus outside a selection, empty selections, trimming; selections over several lines format but don't link or look up, and are blocked when they reach into a code block.
+- **Formatting over several lines:** each line on its own, blank lines skipped; removed when every line has it, added to the rest when only some do; after list, task, heading, quote, and callout markers; partial first and last lines; table rows and rules left alone; refused when a line starts halfway into bold; custom wrappers; a round trip that toggles straight back.
 - **Rendered callouts:** every rendered piece of a PDF++ callout is found in its markdown, including highlighted and linked text and repeated title links; escaped text and whitespace are skipped; the quote block around a position; the callout marker's end.
 - **Shorten:** sentence splitting (abbreviations, initials, links, code, and math don't split); about half / a third as whole sentences in their original order, with formatting and links kept; wordy phrasing, opening linking words, and long asides trimmed, but not inside links or code, nor references in parentheses; the paragraph around a word, across soft line breaks and inside nested quotes; list items; headings, code, and short lines refused; selections over quote lines; Shorten settings repaired when invalid.
 - **Blocking:** inline code, fenced code (backticks, tildes, longer fences, in quotes and lists), `$$` math, frontmatter, wikilinks, embeds, markdown, reference, and auto links, bare URLs, tags versus headings and `#2024`.

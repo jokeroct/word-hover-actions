@@ -8,7 +8,8 @@ import type { WheelSegment, WheelSpec } from "./menu";
 import { countBacklinks, DefineModal, ExtractModal, PeekModal, ShortenModal } from "./modals";
 import type { LinkRequest } from "./note-picker";
 import { type CustomWrapper, resolveSlots } from "./settings-model";
-import { type FormatPlan, planWrap } from "./text/format";
+import { type FormatPlan, lineSpans, planFormatLines, planWrap } from "./text/format";
+import type { Span } from "./text/spans";
 import { isTableRow } from "./text/links";
 import type { ExistingLink, HoverTarget } from "./text/target";
 import { themeClasses } from "./theme";
@@ -60,7 +61,18 @@ function wrapperInfo(wrapper: CustomWrapper): ActionInfo {
 function wrapperPlan(ctx: WheelContext, wrapper: CustomWrapper): FormatPlan {
 	const { target, doc } = ctx;
 	if (target.blocked) return { ok: false, reason: target.blocked };
-	return planWrap(doc, target, wrapper.before, wrapper.after);
+	const wrap = (span: Span) => planWrap(doc, span, wrapper.before, wrapper.after);
+	return spansLines(doc, target) ? planFormatLines(doc, target, wrap) : wrap(target);
+}
+
+const spansLines = (doc: Text, span: Span) => doc.lineAt(span.from).number !== doc.lineAt(span.to).number;
+
+/** The wheel's center text: the target, or how many lines a selection over several lines covers. */
+function hubText(ctx: WheelContext): string {
+	const { target, doc } = ctx;
+	if (!spansLines(doc, target)) return target.text;
+	const lines = lineSpans(doc, target).length;
+	return `${lines} line${lines === 1 ? "" : "s"}`;
 }
 
 function slotSegment(ctx: WheelContext, id: SlotAction): WheelSegment {
@@ -117,7 +129,7 @@ export function buildWheel(ctx: WheelContext): WheelSpec {
 	if (target.existingLink) return linkSegments(ctx, target.existingLink);
 	return {
 		segments: resolveSlots(ctx.plugin.settings).map((id) => slotSegment(ctx, id)),
-		hub: target.blocked ?? target.text,
+		hub: target.blocked ?? hubText(ctx),
 		hubMuted: target.blocked !== null,
 		themeClasses: themeClasses(ctx.plugin.settings.colorPreset),
 	};

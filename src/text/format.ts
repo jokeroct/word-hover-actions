@@ -177,6 +177,65 @@ export function planFormat(doc: DocLike, target: Span, kind: FormatKind): Format
 }
 
 /**
+ * Where formatting may start on a line: after quote markers, a callout's `[!type]` marker, a list
+ * marker (with its task box), or heading hashes.
+ */
+const LINE_PREFIX = /^(?:[ \t]*>[ \t]?)*[ \t]*(?:\[![^\]\n]*\][+-]?[ \t]*|(?:[-*+]|\d+[.)])[ \t]+(?:\[.\][ \t]+)?|#{1,6}[ \t]+)?/;
+/** Lines that formatting markers would break: table rows and rules. */
+const UNFORMATTABLE = /^(?:\||(?:[-*_=][ \t]*){3,}$)/;
+
+/**
+ * The part of each line a selection covers, without line prefixes and surrounding whitespace.
+ * Blank lines, table rows, and rules are left out.
+ */
+export function lineSpans(doc: DocLike, target: Span): Span[] {
+	const spans: Span[] = [];
+	const last = doc.lineAt(target.to).number;
+	for (let n = doc.lineAt(target.from).number; n <= last; n++) {
+		const line = doc.line(n);
+		const prefixEnd = line.from + (LINE_PREFIX.exec(line.text)?.[0].length ?? 0);
+		let from = Math.max(target.from, line.from, prefixEnd);
+		let to = Math.min(target.to, line.to);
+		const text = doc.sliceString(from, to);
+		from += text.length - text.trimStart().length;
+		to -= text.length - text.trimEnd().length;
+		if (from < to && !UNFORMATTABLE.test(doc.sliceString(line.from, line.to).slice(prefixEnd - line.from).trim())) {
+			spans.push({ from, to });
+		}
+	}
+	return spans;
+}
+
+/**
+ * Plans toggling formatting on a selection over several lines, one line at a time, since
+ * Markdown formatting can't cross a line break. When every line already has it, it is removed
+ * from all of them; otherwise it is added to the lines that lack it. `planLine` plans one line.
+ */
+export function planFormatLines(doc: DocLike, target: Span, planLine: (span: Span) => FormatPlan): FormatPlan {
+	const spans = lineSpans(doc, target);
+	if (spans.length === 0) return { ok: false, reason: "Nothing to format" };
+	const plans: Array<Extract<FormatPlan, { ok: true }>> = [];
+	for (const span of spans) {
+		const plan = planLine(span);
+		if (!plan.ok) return plan;
+		plans.push(plan);
+	}
+	const active = plans.every((plan) => plan.active);
+	const changes = plans
+		.filter((plan) => active || !plan.active)
+		.flatMap((plan) => plan.changes)
+		.sort((a, b) => a.from - b.from || a.to - b.to);
+	// The selection keeps the markers of the first and last lines, as it does for the lines between,
+	// so toggling again sees every line formatted the same way.
+	return {
+		ok: true,
+		active,
+		changes,
+		selection: { from: mapPos(target.from, changes, -1), to: mapPos(target.to, changes, 1) },
+	};
+}
+
+/**
  * Plans toggling a custom wrapper (e.g. `%%` … `%%`, `<u>` … `</u>`) around a single-line target.
  * Unwraps when the target includes the wrapper or sits directly between it; otherwise wraps.
  */

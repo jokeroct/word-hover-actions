@@ -44,12 +44,20 @@ describe("resolveTarget", () => {
 		expect(resolveTarget(toDoc(s), 1, [{ from: 1, to: 3 }])).toBeNull();
 	});
 
-	it("blocks multiline selections", () => {
+	it("formats a selection over several lines line by line, but doesn't link or look it up", () => {
 		const target = resolveTarget(toDoc("one\ntwo"), 1, [{ from: 0, to: 7 }]);
-		expect(target).toMatchObject({ blocked: REASON.multiline, source: "selection" });
+		expect(target).toMatchObject({ blocked: null, source: "selection", existingLink: null });
+		expect(target?.bold).toMatchObject({ ok: true, active: false });
+		expect(target?.highlight.ok).toBe(true);
+		expect(target?.link).toEqual({ ok: false, reason: REASON.multiline });
+		expect(target?.lookup).toEqual({ ok: false, reason: REASON.multiline });
+	});
+
+	it("blocks a selection over several lines that reaches into a code block", () => {
+		const s = "text\n```\ncode\n```";
+		const target = resolveTarget(toDoc(s), 1, [{ from: 0, to: s.length }]);
+		expect(target).toMatchObject({ blocked: REASON.codeBlock });
 		expect(target?.bold.ok).toBe(false);
-		expect(target?.highlight.ok).toBe(false);
-		expect(target?.link.ok).toBe(false);
 	});
 
 	it("allows a selection that ends at a line break", () => {

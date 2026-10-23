@@ -1,5 +1,5 @@
-import { blockReason, frontmatterEnd } from "./context";
-import { type FormatPlan, planFormat } from "./format";
+import { blockReason, frontmatterEnd, linesBlockReason } from "./context";
+import { type FormatKind, type FormatPlan, planFormat, planFormatLines } from "./format";
 import { type LinkInfo, linkAt } from "./links";
 import { REASON } from "./reasons";
 import { type ShortenPlan, paragraphAt, selectionPassage } from "./shorten";
@@ -133,22 +133,27 @@ export function resolveTarget(
 
 	const text = doc.sliceString(span.from, span.to);
 	const multiline = doc.lineAt(span.from).number !== doc.lineAt(span.to).number;
+	// Over several lines, formatting goes line by line, so only code, math, and properties stop it.
 	const blocked = multiline
-		? REASON.multiline
+		? linesBlockReason(doc, span.from, span.to)
 		: (blockReason(doc, span.from, span.to) ?? extraCheck?.(span.from, span.to) ?? null);
 	const refused = { ok: false as const, reason: blocked ?? "" };
 	const editable = blocked === null;
+	const format = (kind: FormatKind): FormatPlan => {
+		if (!editable) return refused;
+		return multiline ? planFormatLines(doc, span, (line) => planFormat(doc, line, kind)) : planFormat(doc, span, kind);
+	};
 	return {
 		...span,
 		text,
 		source,
 		blocked,
 		existingLink: multiline ? null : enclosingLink(doc, span),
-		bold: editable ? planFormat(doc, span, "bold") : refused,
-		italic: editable ? planFormat(doc, span, "italic") : refused,
-		highlight: editable ? planFormat(doc, span, "highlight") : refused,
-		strikethrough: editable ? planFormat(doc, span, "strikethrough") : refused,
-		link: editable ? planLink(doc, span) : refused,
+		bold: format("bold"),
+		italic: format("italic"),
+		highlight: format("highlight"),
+		strikethrough: format("strikethrough"),
+		link: !editable ? refused : multiline ? { ok: false, reason: REASON.multiline } : planLink(doc, span),
 		extract: planExtract(doc, span, source, text),
 		lookup: planLookup(text, multiline),
 		shorten: source === "selection" ? selectionPassage(doc, span) : paragraphAt(doc, span.from),
