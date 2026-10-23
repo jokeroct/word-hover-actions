@@ -1,4 +1,4 @@
-import { type App, PluginSettingTab, type Setting, type SettingDefinition, type SettingDefinitionItem } from "obsidian";
+import { type App, PluginSettingTab, type Setting, type SettingDefinition, type SettingDefinitionItem, setIcon } from "obsidian";
 import { BUILTIN_ACTIONS, type SlotAction, isBuiltin } from "./actions";
 import { HoverMenu, type WheelSegment } from "./menu";
 import { LENGTH_OPTIONS } from "./modals";
@@ -16,6 +16,9 @@ import {
 } from "./settings-model";
 
 type SettingKey = keyof WordHoverSettings;
+
+/** The author's Ko-fi page, also the manifest's fundingUrl. */
+const KOFI_URL = "https://ko-fi.com/mdsama";
 
 export class WordHoverSettingTab extends PluginSettingTab {
 	constructor(
@@ -305,6 +308,24 @@ export class WordHoverSettingTab extends PluginSettingTab {
 									await save();
 								}),
 							);
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Support",
+				items: [
+					{
+						name: "Support Word Hover Actions",
+						desc: "If the plugin helps you, you can support its development on Ko-fi.",
+						render: (setting) => {
+							setting.addButton((button) => {
+								button.setButtonText("Support me on Ko-fi").onClick(() => window.open(KOFI_URL));
+								// A button holds an icon or text, not both, so the icon goes in beside the text.
+								button.buttonEl.addClass("wha-kofi-button");
+								setIcon(button.buttonEl.createSpan({ cls: "wha-kofi-icon", prepend: true }), "coffee");
+							});
 						},
 					},
 				],

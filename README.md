@@ -6,6 +6,8 @@ Hold **Shift** over a word in Obsidian to open an action wheel: link or create n
 
 **[▶ Try the interactive demo](https://jokeroct.github.io/word-hover-actions/)**: the real wheel, running in your browser.
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/mdsama)
+
 ## Features
 
 ### The wheel

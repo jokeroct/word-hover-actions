@@ -10,6 +10,8 @@ What has been tested so far, and what hasn't.
 - Highlight on two list items went after the bullets: `- ==list item one==`.
 - The wheel and toast and rendered-callout checks still pass.
 
+**Ko-fi support link**, in the README, the manifest (`fundingUrl`), and a new Support group at the bottom of Settings. The Settings button shows a coffee icon beside "Support me on Ko-fi" and opens `https://ko-fi.com/mdsama`; it loads nothing from Ko-fi until clicked.
+
 ## Release 1.0.4
 
 **The wheel opens faster**, with an **Open delay** setting (default 40 ms, range 0–500 ms), and a shorter opening animation. Timed in Obsidian 1.14.4 (Windows) with the dev-vault harness:
