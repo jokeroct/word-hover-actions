@@ -2,7 +2,7 @@
 
 What has been tested so far, and what hasn't.
 
-## Not yet released
+## Release 1.0.5
 
 **Formatting a selection over several lines**, line by line (it used to be refused). Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness, on `Multiline sample.md`:
 - Selecting three lines separated by blank lines ("A. Monosaccharides…", "B. …", "C. …"): the wheel shows "3 lines", with Bold, Italic, Highlight, and Extract available and Link and Define dimmed ("Selection spans several lines").
