@@ -2,7 +2,7 @@
 
 What has been tested so far, and what hasn't.
 
-## Not yet released
+## Release 1.0.6
 
 **Shorten as bullet points or numbered steps**: a Style choice in the dialog and a default in Settings. Checked in Obsidian 1.14.5 (Windows) with the dev-vault harness, on the PDF++ callout paragraph:
 - The dialog opens on the default style (Paragraph). Bullet points (about two-thirds) gave one `- ` line per kept sentence, with highlights kept, and **Insert below** added them inside the callout's nested quote, each line starting `> > - `.
