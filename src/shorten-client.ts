@@ -1,11 +1,29 @@
 import { requestUrl } from "obsidian";
+import type { ShortenStyle } from "./text/shorten";
 
-function prompt(text: string, ratio: number): string {
+/** What the reply should look like, for each style. */
+const SHAPES: Record<ShortenStyle, { task: string; reply: string }> = {
+	paragraph: {
+		task: "Shorten the following passage",
+		reply: "Reply with the shortened passage only, with no introduction or quotes around it.",
+	},
+	bullets: {
+		task: "Summarize the following passage as short bullet points",
+		reply: 'Reply with the bullet points only, one per line, each starting with "- ", with no introduction.',
+	},
+	numbered: {
+		task: "Summarize the following passage as numbered steps, in order",
+		reply: 'Reply with the steps only, one per line, numbered "1.", "2.", and so on, with no introduction.',
+	},
+};
+
+function prompt(text: string, ratio: number, style: ShortenStyle): string {
+	const shape = SHAPES[style];
 	return [
-		`Shorten the following passage to about ${Math.round(ratio * 100)}% of its length.`,
+		`${shape.task}, to about ${Math.round(ratio * 100)}% of its length.`,
 		"Keep its meaning, key facts, names, and numbers, and don't add anything that isn't in it.",
 		"Keep any Markdown that stays, such as [[links]], **bold**, and ==highlights==.",
-		"Reply with the shortened passage only, with no introduction or quotes around it.",
+		shape.reply,
 		"",
 		"Passage:",
 		text,
@@ -26,14 +44,20 @@ function clean(reply: string): string {
  * Asks an Ollama server (by default on this computer) to rewrite `text` shorter. Only called when
  * the user has chosen the local AI in settings. Throws with a readable message when it can't.
  */
-export async function shortenWithOllama(text: string, ratio: number, baseUrl: string, model: string): Promise<string> {
+export async function shortenWithOllama(
+	text: string,
+	ratio: number,
+	baseUrl: string,
+	model: string,
+	style: ShortenStyle = "paragraph",
+): Promise<string> {
 	let response;
 	try {
 		response = await requestUrl({
 			url: `${baseUrl}/api/generate`,
 			method: "POST",
 			contentType: "application/json",
-			body: JSON.stringify({ model, prompt: prompt(text, ratio), stream: false }),
+			body: JSON.stringify({ model, prompt: prompt(text, ratio, style), stream: false }),
 			throw: false,
 		});
 	} catch {

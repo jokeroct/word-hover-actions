@@ -20,7 +20,16 @@ import type { WordHoverSettings } from "./settings-model";
 import { shortenWithOllama } from "./shorten-client";
 import { type DictionaryEntry, type WikiSummary, noteFromPassage, noteFromSummary } from "./text/lookup";
 import { planCreate, suggestTitle, suggestTitleFromPassage } from "./text/notes";
-import { type Passage, SHORTEN_RATIOS, type ShortenLength, shortenText } from "./text/shorten";
+import {
+	type Passage,
+	SHORTEN_RATIOS,
+	type ShortenLength,
+	type ShortenStyle,
+	blockText,
+	pointsFromReply,
+	shortenText,
+	withoutPointMarkers,
+} from "./text/shorten";
 import { themeClasses } from "./theme";
 
 const newNoteFolder = (app: App, sourcePath: string) => app.fileManager.getNewFileParent(sourcePath, "untitled.md").path;
@@ -297,6 +306,12 @@ export const LENGTH_OPTIONS: Record<ShortenLength, string> = {
 	twoThirds: "About two-thirds",
 };
 
+export const STYLE_OPTIONS: Record<ShortenStyle, string> = {
+	paragraph: "Paragraph",
+	bullets: "Bullet points",
+	numbered: "Numbered steps",
+};
+
 const countWords = (text: string) => text.match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
 
 /**
@@ -305,6 +320,7 @@ const countWords = (text: string) => text.match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
  */
 export class ShortenModal extends Modal {
 	private length: ShortenLength;
+	private style: ShortenStyle;
 	private output: TextAreaComponent | null = null;
 	private statusEl: HTMLElement | null = null;
 	private readonly buttons: ButtonComponent[] = [];
@@ -320,6 +336,7 @@ export class ShortenModal extends Modal {
 	) {
 		super(app);
 		this.length = settings.shortenLength;
+		this.style = settings.shortenStyle;
 	}
 
 	onOpen(): void {
@@ -333,6 +350,15 @@ export class ShortenModal extends Modal {
 				.setValue(this.length)
 				.onChange((value) => {
 					this.length = value as ShortenLength;
+					void this.generate();
+				}),
+		);
+		new Setting(contentEl).setName("Style").addDropdown((dropdown) =>
+			dropdown
+				.addOptions(STYLE_OPTIONS)
+				.setValue(this.style)
+				.onChange((value) => {
+					this.style = value as ShortenStyle;
 					void this.generate();
 				}),
 		);
@@ -363,7 +389,9 @@ export class ShortenModal extends Modal {
 		const run = ++this.run;
 		const { passage } = this.request;
 		const ratio = SHORTEN_RATIOS[this.length];
-		const builtin = () => shortenText(passage.text, ratio, this.settings.lookupLanguage);
+		const { style } = this;
+		const language = this.settings.lookupLanguage;
+		const builtin = () => shortenText(passage.text, ratio, language, style);
 		if (this.settings.shortenEngine !== "ollama") {
 			this.show(builtin(), "Key sentences, in their original wording");
 			return;
@@ -371,7 +399,8 @@ export class ShortenModal extends Modal {
 		const { ollamaUrl, ollamaModel } = this.settings;
 		this.setBusy(`Asking ${ollamaModel}…`);
 		try {
-			const text = await shortenWithOllama(passage.text, ratio, ollamaUrl, ollamaModel);
+			const reply = await shortenWithOllama(passage.text, ratio, ollamaUrl, ollamaModel, style);
+			const text = style === "paragraph" ? reply : pointsFromReply(reply, style, language);
 			if (run === this.run) this.show(text, `Rewritten by ${ollamaModel}`);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
@@ -394,7 +423,7 @@ export class ShortenModal extends Modal {
 
 	private showStats(): void {
 		const before = countWords(this.request.passage.text);
-		const after = countWords(this.output?.getValue() ?? "");
+		const after = countWords(withoutPointMarkers(this.output?.getValue() ?? ""));
 		const percent = before ? Math.round((after / before) * 100) : 100;
 		this.statusEl?.setText(`${this.note} · ${before} → ${after} words (${percent}%)`);
 	}
@@ -415,8 +444,8 @@ export class ShortenModal extends Modal {
 			this.close();
 			return;
 		}
-		// Every line of the result stays inside the passage's quote or callout.
-		const body = text.replace(/\n/g, `\n${passage.prefix}`);
+		// Every line of the result stays inside the passage's quote, callout, or list.
+		const body = blockText(passage, text);
 		const change =
 			mode === "replace"
 				? { from: passage.from, to: passage.to, text: body }

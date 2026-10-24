@@ -35,10 +35,25 @@ describe("loadSettings", () => {
 
 	it("keeps valid Shorten settings and repairs invalid ones", () => {
 		expect(
-			loadSettings({ shortenLength: "third", shortenEngine: "ollama", ollamaUrl: "http://127.0.0.1:11434/", ollamaModel: " qwen2.5 " }),
-		).toMatchObject({ shortenLength: "third", shortenEngine: "ollama", ollamaUrl: "http://127.0.0.1:11434", ollamaModel: "qwen2.5" });
-		expect(loadSettings({ shortenLength: "toString", shortenEngine: "cloud", ollamaUrl: "file:///etc", ollamaModel: "" })).toMatchObject({
+			loadSettings({
+				shortenLength: "third",
+				shortenStyle: "numbered",
+				shortenEngine: "ollama",
+				ollamaUrl: "http://127.0.0.1:11434/",
+				ollamaModel: " qwen2.5 ",
+			}),
+		).toMatchObject({
+			shortenLength: "third",
+			shortenStyle: "numbered",
+			shortenEngine: "ollama",
+			ollamaUrl: "http://127.0.0.1:11434",
+			ollamaModel: "qwen2.5",
+		});
+		expect(
+			loadSettings({ shortenLength: "toString", shortenStyle: "table", shortenEngine: "cloud", ollamaUrl: "file:///etc", ollamaModel: "" }),
+		).toMatchObject({
 			shortenLength: "half",
+			shortenStyle: "paragraph",
 			shortenEngine: "builtin",
 			ollamaUrl: "http://localhost:11434",
 			ollamaModel: "llama3.2",

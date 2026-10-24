@@ -705,6 +705,22 @@
 	width: 7em;
 }
 
+/* The Ko-fi button in Settings: a coffee icon beside the text. */
+.wha-kofi-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.wha-kofi-button .wha-kofi-icon {
+	display: inline-flex;
+}
+
+.wha-kofi-button .wha-kofi-icon svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+}
+
 /* ---- Motion ------------------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {

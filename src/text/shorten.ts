@@ -3,6 +3,9 @@ import { REASON } from "./reasons";
 import type { DocLike, Span } from "./spans";
 
 export type ShortenLength = "third" | "half" | "twoThirds";
+/** How the shortened text is laid out: prose, a bulleted list, or numbered steps. */
+export type ShortenStyle = "paragraph" | "bullets" | "numbered";
+export const SHORTEN_STYLE_IDS: readonly ShortenStyle[] = ["paragraph", "bullets", "numbered"];
 
 /** Roughly how much of the original each length keeps. */
 export const SHORTEN_RATIOS: Record<ShortenLength, number> = { third: 0.35, half: 0.5, twoThirds: 0.67 };
@@ -17,6 +20,8 @@ export interface Passage extends Span {
 	insertAt: number;
 	/** Goes before the inserted copy, starting a new paragraph (or list item) in the same block. */
 	separator: string;
+	/** For a list item, the marker that starts a new item in the same list, e.g. "- " or "- [ ] ". */
+	listMarker: string | null;
 }
 
 export type ShortenPlan = ({ ok: true } & Passage) | { ok: false; reason: string };
@@ -85,7 +90,15 @@ export function paragraphAt(doc: DocLike, pos: number): ShortenPlan {
 		const from = line.from + info.quote.length + info.marker.length;
 		const to = line.from + line.text.trimEnd().length;
 		const bullet = info.marker.replace(/\[.\]/, "[ ]");
-		return plan({ from, to, text: doc.sliceString(from, to).trim(), prefix, insertAt: to, separator: `\n${prefix}${bullet}` });
+		return plan({
+			from,
+			to,
+			text: doc.sliceString(from, to).trim(),
+			prefix,
+			insertAt: to,
+			separator: `\n${prefix}${bullet}`,
+			listMarker: bullet,
+		});
 	}
 
 	const sameParagraph = (n: number) => {
@@ -104,7 +117,7 @@ export function paragraphAt(doc: DocLike, pos: number): ShortenPlan {
 	const to = lastLine.from + lastLine.text.trimEnd().length;
 	const text = lines.map((l) => lineInfo(l.text).rest.trim()).join(" ");
 	const separator = prefix ? `\n${prefix.trimEnd()}\n${prefix}` : "\n\n";
-	return plan({ from, to, text, prefix, insertAt: lastLine.to, separator });
+	return plan({ from, to, text, prefix, insertAt: lastLine.to, separator, listMarker: null });
 }
 
 /** A selected passage, which may run over several lines of a quote or callout. */
@@ -124,7 +137,7 @@ export function selectionPassage(doc: DocLike, span: Span): ShortenPlan {
 	}
 	const prefix = linePrefix(lineInfo(firstLine.text).quote);
 	const separator = prefix ? `\n${prefix.trimEnd()}\n${prefix}` : "\n\n";
-	return plan({ from: span.from, to: span.to, text: parts.join(" "), prefix, insertAt: lastLine.to, separator });
+	return plan({ from: span.from, to: span.to, text: parts.join(" "), prefix, insertAt: lastLine.to, separator, listMarker: null });
 }
 
 // ---- Shortening ---------------------------------------------------------------------------
@@ -267,9 +280,61 @@ function tighten(sentence: string): string {
 /**
  * Shortens prose without leaving the computer: keeps the most central sentences, in their
  * original order, until about `ratio` of the text remains, then tightens wordy phrasing (English
- * only). Words are never invented, and links, code, and formatting stay intact.
+ * only). Words are never invented, and links, code, and formatting stay intact. As points, each
+ * kept sentence goes on its own line.
  */
-export function shortenText(text: string, ratio: number, language = "en"): string {
+export function shortenText(text: string, ratio: number, language = "en", style: ShortenStyle = "paragraph"): string {
+	const sentences = keySentences(text, ratio, language);
+	return style === "paragraph" ? sentences.join(" ") : formatPoints(sentences, style);
+}
+
+/** A list item's marker at the start of a line: `-`, `*`, `+`, `•`, or `1.` / `1)`. */
+const POINT_MARKER = /^\s*(?:[-*+•]|\d+[.)])\s+/;
+
+/** Points as a Markdown list: `- point` lines, or `1. step` lines numbered in order. */
+export function formatPoints(points: readonly string[], style: Exclude<ShortenStyle, "paragraph">): string {
+	return points
+		.map((point) => point.replace(POINT_MARKER, "").trim())
+		.filter(Boolean)
+		.map((point, i) => `${style === "numbered" ? `${i + 1}.` : "-"} ${point}`)
+		.join("\n");
+}
+
+/**
+ * Turns an AI's answer into a clean list in the chosen style: whatever markers it used are
+ * replaced, and an answer written as a paragraph is split into one point per sentence.
+ */
+export function pointsFromReply(reply: string, style: Exclude<ShortenStyle, "paragraph">, language = "en"): string {
+	const lines = reply
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean);
+	if (lines.length > 1) return formatPoints(lines, style);
+	const sentences = splitSentences(reply.trim(), language).map((s) => reply.trim().slice(s.from, s.to).trim());
+	return formatPoints(sentences, style);
+}
+
+/**
+ * The text that replaces a passage, or follows its `separator` when inserted below it. Every
+ * further line gets the block's prefix (quote markers), and when the passage is a list item, the
+ * points become items of that same list rather than a list inside it.
+ */
+export function blockText(passage: Pick<Passage, "prefix" | "listMarker">, text: string): string {
+	if (passage.listMarker && POINT_MARKER.test(text)) {
+		const items = text
+			.split("\n")
+			.map((line) => line.replace(POINT_MARKER, "").trim())
+			.filter(Boolean);
+		return items.join(`\n${passage.prefix}${passage.listMarker}`);
+	}
+	return text.replace(/\n/g, `\n${passage.prefix}`);
+}
+
+/** The words a list's markers add, so word counts compare text with text. */
+export const withoutPointMarkers = (text: string) => text.replace(new RegExp(POINT_MARKER.source, "gm"), "");
+
+/** The sentences the built-in method keeps, in their original order, tightened. */
+function keySentences(text: string, ratio: number, language: string): string[] {
 	const source = text.trim();
 	const sentences = splitSentences(source, language).map((s) => source.slice(s.from, s.to).trim()).filter(Boolean);
 	const budget = source.length * ratio;
@@ -290,5 +355,5 @@ export function shortenText(text: string, ratio: number, language = "en"): strin
 		kept = sentences.filter((_, i) => chosen.has(i));
 	}
 	const english = language.toLowerCase().startsWith("en");
-	return kept.map((s) => (english ? tighten(s) : s)).join(" ");
+	return kept.map((s) => (english ? tighten(s) : s));
 }

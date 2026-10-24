@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { REASON } from "../src/text/reasons";
-import { paragraphAt, selectionPassage, shortenText, splitSentences } from "../src/text/shorten";
+import {
+	blockText,
+	formatPoints,
+	paragraphAt,
+	pointsFromReply,
+	selectionPassage,
+	shortenText,
+	splitSentences,
+	withoutPointMarkers,
+} from "../src/text/shorten";
 import { at, toDoc } from "./helpers";
 
 const PARAGRAPH =
@@ -125,5 +134,54 @@ describe("selectionPassage", () => {
 			prefix: "> > ",
 			insertAt: s.length,
 		});
+	});
+});
+
+describe("points (bullets and numbered steps)", () => {
+	it("puts each kept sentence on its own line, in order", () => {
+		const bullets = shortenText(PARAGRAPH, 0.67, "en", "bullets").split("\n");
+		expect(bullets.length).toBeGreaterThan(1);
+		expect(bullets.every((line) => line.startsWith("- "))).toBe(true);
+		expect(bullets[0]).toMatch(/^- The first forms of life/);
+		const steps = shortenText(PARAGRAPH, 0.67, "en", "numbered").split("\n");
+		expect(steps.map((line) => line.slice(0, 3))).toEqual(steps.map((_, i) => `${i + 1}. `));
+	});
+
+	it("keeps the same sentences as the paragraph style", () => {
+		const paragraph = shortenText(PARAGRAPH, 0.5);
+		const points = shortenText(PARAGRAPH, 0.5, "en", "bullets");
+		expect(withoutPointMarkers(points).split("\n").join(" ")).toBe(paragraph);
+	});
+
+	it("replaces whatever markers an AI used, and renumbers steps", () => {
+		expect(formatPoints(["• first", "* second", "3) third", "plain"], "numbered")).toBe("1. first\n2. second\n3. third\n4. plain");
+		expect(pointsFromReply("1. one\n\n2. two\n", "bullets")).toBe("- one\n- two");
+	});
+
+	it("splits an AI answer written as a paragraph into one point per sentence", () => {
+		expect(pointsFromReply("Cells divide. They grow.", "bullets")).toBe("- Cells divide.\n- They grow.");
+	});
+
+	it("counts words without the list markers", () => {
+		expect(withoutPointMarkers("1. one two\n- three")).toBe("one two\nthree");
+	});
+});
+
+describe("blockText (writing the result back)", () => {
+	it("keeps every line of a list inside a quote or callout", () => {
+		expect(blockText({ prefix: "> > ", listMarker: null }, "- a\n- b")).toBe("- a\n> > - b");
+	});
+
+	it("leaves a plain paragraph's list as it is", () => {
+		expect(blockText({ prefix: "", listMarker: null }, "1. a\n2. b")).toBe("1. a\n2. b");
+	});
+
+	it("turns points into items of the list a shortened list item belongs to", () => {
+		expect(blockText({ prefix: "", listMarker: "- " }, "1. a\n2. b")).toBe("a\n- b");
+		expect(blockText({ prefix: "> ", listMarker: "- [ ] " }, "- a\n- b")).toBe("a\n> - [ ] b");
+	});
+
+	it("keeps a paragraph result as one paragraph inside a list item", () => {
+		expect(blockText({ prefix: "", listMarker: "- " }, "Just a sentence.")).toBe("Just a sentence.");
 	});
 });

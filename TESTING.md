@@ -2,6 +2,14 @@
 
 What has been tested so far, and what hasn't.
 
+## Not yet released
+
+**Shorten as bullet points or numbered steps**: a Style choice in the dialog and a default in Settings. Checked in Obsidian 1.14.5 (Windows) with the dev-vault harness, on the PDF++ callout paragraph:
+- The dialog opens on the default style (Paragraph). Bullet points (about two-thirds) gave one `- ` line per kept sentence, with highlights kept, and **Insert below** added them inside the callout's nested quote, each line starting `> > - `.
+- Numbered steps gave `1.` and `2.` lines, and **Replace** put them in place of the paragraph.
+- **AI:** with a stand-in server, the prompt asked for bullet points, and a reply using `•` bullets, a "Here is…" preface, and hidden reasoning came back as a clean `- ` list.
+- The earlier Shorten checks still pass.
+
 ## Release 1.0.5
 
 **Formatting a selection over several lines**, line by line (it used to be refused). Checked in Obsidian 1.14.4 (Windows) with the dev-vault harness, on `Multiline sample.md`:
@@ -55,7 +63,7 @@ Clears the code warnings from the Community directory review. Checked in Obsidia
 - The interactive demo page (`docs/`) works in Chromium at desktop and phone widths, in dark and light themes, with no console errors.
 - The code was checked against Obsidian's plugin guidelines: it uses the Vault API, `normalizePath()` for new note paths, and stylesheet classes instead of hard-coded styles, except for positions calculated at runtime.
 
-## Automated (161 unit tests, all passing)
+## Automated (170 unit tests, all passing)
 
 Run them with `npm test`.
 

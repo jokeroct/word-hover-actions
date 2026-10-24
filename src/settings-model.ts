@@ -1,5 +1,5 @@
 import { type SlotAction, isBuiltin } from "./actions";
-import { SHORTEN_RATIOS, type ShortenLength } from "./text/shorten";
+import { SHORTEN_RATIOS, SHORTEN_STYLE_IDS, type ShortenLength, type ShortenStyle } from "./text/shorten";
 import { type ColorPreset, isPreset } from "./theme";
 
 export type SlotCount = 4 | 6 | 8;
@@ -31,6 +31,8 @@ export interface WordHoverSettings {
 	lookupLanguage: string;
 	/** How much of a passage Shorten keeps, to begin with. */
 	shortenLength: ShortenLength;
+	/** How Shorten lays out the result, to begin with: a paragraph, bullet points, or numbered steps. */
+	shortenStyle: ShortenStyle;
 	/** Built-in (offline: picks key sentences) or a local AI through Ollama (rewrites). */
 	shortenEngine: "builtin" | "ollama";
 	/** Ollama's address, contacted only when the engine is "ollama". */
@@ -66,6 +68,7 @@ export const DEFAULT_SETTINGS: WordHoverSettings = {
 	extractReplace: "link",
 	lookupLanguage: "en",
 	shortenLength: "half",
+	shortenStyle: "paragraph",
 	shortenEngine: "builtin",
 	ollamaUrl: "http://localhost:11434",
 	ollamaModel: "llama3.2",
@@ -114,6 +117,9 @@ export function loadSettings(saved: unknown): WordHoverSettings {
 		shortenLength: Object.prototype.hasOwnProperty.call(SHORTEN_RATIOS, data.shortenLength ?? "")
 			? data.shortenLength!
 			: DEFAULT_SETTINGS.shortenLength,
+		shortenStyle: SHORTEN_STYLE_IDS.includes(data.shortenStyle as ShortenStyle)
+			? (data.shortenStyle as ShortenStyle)
+			: DEFAULT_SETTINGS.shortenStyle,
 		shortenEngine: data.shortenEngine === "ollama" ? "ollama" : "builtin",
 		ollamaUrl: cleanUrl(data.ollamaUrl ?? "") ?? DEFAULT_SETTINGS.ollamaUrl,
 		ollamaModel: typeof data.ollamaModel === "string" && data.ollamaModel.trim() ? data.ollamaModel.trim() : DEFAULT_SETTINGS.ollamaModel,

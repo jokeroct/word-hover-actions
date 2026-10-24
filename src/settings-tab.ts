@@ -1,7 +1,7 @@
 import { type App, PluginSettingTab, type Setting, type SettingDefinition, type SettingDefinitionItem, setIcon } from "obsidian";
 import { BUILTIN_ACTIONS, type SlotAction, isBuiltin } from "./actions";
 import { HoverMenu, type WheelSegment } from "./menu";
-import { LENGTH_OPTIONS } from "./modals";
+import { LENGTH_OPTIONS, STYLE_OPTIONS } from "./modals";
 import { PRESETS, PRESET_IDS, themeClasses } from "./theme";
 import type WordHoverActionsPlugin from "./main";
 import {
@@ -239,6 +239,11 @@ export class WordHoverSettingTab extends PluginSettingTab {
 						name: "Length",
 						desc: "How much of the paragraph or selection to keep. You can change it in the dialog each time.",
 						control: { type: "dropdown", key: "shortenLength", options: LENGTH_OPTIONS },
+					},
+					{
+						name: "Style",
+						desc: "Lay the result out as a paragraph, bullet points, or numbered steps. You can change it in the dialog each time.",
+						control: { type: "dropdown", key: "shortenStyle", options: STYLE_OPTIONS },
 					},
 					{
 						name: "Method",
