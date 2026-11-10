@@ -2,7 +2,7 @@
 
 What has been tested so far, and what hasn't.
 
-## Not yet released
+## Release 1.0.7
 
 **Shorten with a local AI: faster, clearer errors, and a time limit.** Shorten now asks Ollama not to "think" first (and retries without that option for models that refuse it), shows Ollama's own error message, gives up after a minute, and asks for a word count rather than a percentage. Checked in Obsidian 1.15.0 (Windows) with the dev-vault harness:
 - `qwen3.5:4b` (real model), on the PDF++ callout paragraph: a paragraph in 9.4 s (58% of the words, for "about half") and bullet points in 7.8 s (48%), where it used to run for over 5 minutes without answering. This was with Ollama running on the CPU only (see below); on the graphics card the same request took about 1.3 s.
