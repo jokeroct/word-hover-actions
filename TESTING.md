@@ -2,6 +2,14 @@
 
 What has been tested so far, and what hasn't.
 
+## Not yet released
+
+**Shorten with a local AI: faster, clearer errors, and a time limit.** Shorten now asks Ollama not to "think" first (and retries without that option for models that refuse it), shows Ollama's own error message, gives up after a minute, and asks for a word count rather than a percentage. Checked in Obsidian 1.15.0 (Windows) with the dev-vault harness:
+- `qwen3.5:4b` (real model), on the PDF++ callout paragraph: a paragraph in 9.4 s (58% of the words, for "about half") and bullet points in 7.8 s (48%), where it used to run for over 5 minutes without answering. This was with Ollama running on the CPU only (see below); on the graphics card the same request took about 1.3 s.
+- With a stand-in server: an out-of-credits answer (HTTP 402) shows "Ollama: Add usage credits or subscribe…" instead of the bare status; a model that refuses the `think` option is asked again without it; an answer slower than a minute falls back to the built-in version after 60 s.
+- Word-count prompt: for "about half" of 73 words, `qwen3.5:4b` gave 27 words, against 53–59 words when asked for "50% of its length".
+- Seen while testing, not the plugin: after an Ollama update, Ollama found no GPU (its log said `library=cpu`) and ran models several times slower. Restarting Ollama is the first thing to try.
+
 ## Release 1.0.6
 
 **Shorten as bullet points or numbered steps**: a Style choice in the dialog and a default in Settings. Checked in Obsidian 1.14.5 (Windows) with the dev-vault harness, on the PDF++ callout paragraph:
@@ -63,7 +71,7 @@ Clears the code warnings from the Community directory review. Checked in Obsidia
 - The interactive demo page (`docs/`) works in Chromium at desktop and phone widths, in dark and light themes, with no console errors.
 - The code was checked against Obsidian's plugin guidelines: it uses the Vault API, `normalizePath()` for new note paths, and stylesheet classes instead of hard-coded styles, except for positions calculated at runtime.
 
-## Automated (170 unit tests, all passing)
+## Automated (174 unit tests, all passing)
 
 Run them with `npm test`.
 
